@@ -1,9 +1,11 @@
-﻿// dbgext.h : Include file for standard system include files,
-// or project specific include files.
-
 #pragma once
 
-#include <iostream>
-#include <DbgEng.h>
+#define _UNICODE
+#define UNICODE
+#define WIN32_LEAN_AND_MEAN
 
-// TODO: Reference additional headers your program requires here.
+#include <Windows.h>
+#include <DbgEng.h>
+#include <DbgModel.h>
+
+#include <winrt/base.h>
