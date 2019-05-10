@@ -9,3 +9,7 @@ See if it could then enumerate the scripts/heap/functions/etc. from it.
 Try to figure out the best way to model the object hierarchy.
 
 Try to create an 'enumerable' type on the map to show the slots on an object.
+
+Notes:
+ - Use RegisterModelForTypeSignature to control how a type is displayed.
+ https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/dbgmodel/nf-dbgmodel-idatamodelmanager-registermodelfortypesignature
