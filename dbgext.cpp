@@ -47,8 +47,9 @@ extern "C" {
 
         if(!spDebugHost.try_as(spDebugHostMemory)) return E_FAIL;
 
+        // ***** TODO: Temp impl to try and add a property to the process *****
         winrt::com_ptr<IModelObject> spProcess, spModel;
-        hr = spDataModelManager->AcquireNamedModel(L"Debugger.Models.Process", spProcess.put());
+        hr = spDataModelManager->AcquireNamedModel(L"Debugger.Models.Thread", spProcess.put());
         if(FAILED(hr)) return E_FAIL;
 
         auto MyDataModel{ winrt::make<Foo>()};
@@ -56,6 +57,16 @@ extern "C" {
         hr = spDataModelManager->CreateDataModelObject(MyDataModel.get(), spModel.put());
         if(FAILED(hr)) return E_FAIL;
         hr = spModel->SetConcept(__uuidof(IStringDisplayableConcept), MyDataModel.get(), nullptr);
+        if(FAILED(hr)) return E_FAIL;
+
+        // Create a property on the object
+        winrt::com_ptr<IModelObject> spKey;
+        VARIANT vt;
+        vt.vt = VT_UI8;
+        vt.ullVal = 0x5151515151515151;
+        hr = spDataModelManager->CreateIntrinsicObject(ObjectIntrinsic, &vt, spKey.put());
+        if(FAILED(hr)) return E_FAIL;
+        hr = spModel->SetKey(L"Isolate", spKey.get(), nullptr);
         if(FAILED(hr)) return E_FAIL;
 
         hr = spProcess->AddParentModel(spModel.get(), nullptr, false);
