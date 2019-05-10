@@ -1,7 +1,6 @@
 # DbgExt
 This project shows a basic example of a debugger extension. It uses the DataModel
 as much as possible (see [DataModel Overview] and the [DataModel Manager]).
-It also makes use of the [DataModel C++ Object Interfaces]
 
 ## Building
 
@@ -38,6 +37,5 @@ Load the extension in the target debugger, which should trigger the breakpoint.
 
 `.load "C:\\src\\github\\dbgext\\x64\\dbgext.dll"`
 
-[DataModel C++ Object Interfaces]: https://github.com/Microsoft/WinDbg-Libraries/tree/master/DbgModelCppLib
 [DataModel Overview]: https://github.com/Microsoft/WinDbg-Libraries/tree/master/DbgModelCppLib
 [DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-objects#-the-data-model-manager
