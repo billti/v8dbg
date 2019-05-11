@@ -33,6 +33,45 @@ struct Foo : winrt::implements<Foo, IDataModelConcept, IStringDisplayableConcept
     }
 };
 
+
+struct MyHeapObject : winrt::implements<Foo, IDataModelConcept, IStringDisplayableConcept> {
+    HRESULT __stdcall InitializeObject(
+        IModelObject* modelObject,
+        IDebugHostTypeSignature* matchingTypeSignature,
+        IDebugHostSymbolEnumerator* wildcardMatches
+    ) noexcept override
+    {
+        // Should be able to get the ptr_ property.
+        winrt::com_ptr<IKeyEnumerator> spKeyEnumerator;
+        HRESULT hr = modelObject->EnumerateKeys(spKeyEnumerator.put());
+
+        BSTR *pBSTR;
+        winrt::com_ptr<IModelObject> spKeyValue;
+        winrt::com_ptr<IKeyStore> spKeyStore;
+
+        hr = spKeyEnumerator->GetNext(pBSTR, spKeyValue.put(), spKeyStore.put());
+        if(SUCCEEDED(hr))
+        {
+            spKeyValue->
+        }
+        return S_OK;
+    }
+
+    HRESULT __stdcall GetName( BSTR* modelName) noexcept override
+    {
+        return E_NOTIMPL;
+    }
+    HRESULT __stdcall ToDisplayString(
+        IModelObject* contextObject,
+        IKeyStore* metadata,
+        BSTR* displayString
+    ) noexcept override
+    {
+        *displayString = ::SysAllocString(L"MyHeapObject");
+        return S_OK;
+    }
+};
+
 extern "C" {
 
 	__declspec(dllexport) HRESULT CALLBACK DebugExtensionInitialize(PULONG /*pVersion*/, PULONG /*pFlags*/)
@@ -70,6 +109,23 @@ extern "C" {
         if(FAILED(hr)) return E_FAIL;
 
         hr = spProcess->AddParentModel(spModel.get(), nullptr, false);
+        if(FAILED(hr)) return E_FAIL;
+
+        // ***** Register model for v8::internal::HeapObject
+        winrt::com_ptr<IDebugHostSymbols> spHostSymbols;
+        winrt::com_ptr<IDebugHostTypeSignature> spTypeSignature;
+        winrt::com_ptr<IModelObject> spSignatureModel;
+
+        auto heapObjectModel{ winrt::make<MyHeapObject>()};
+        hr = spDataModelManager->CreateDataModelObject(heapObjectModel.get(), spSignatureModel.put());
+        if(FAILED(hr)) return E_FAIL;
+        hr = spSignatureModel->SetConcept(__uuidof(IStringDisplayableConcept), heapObjectModel.get(), nullptr);
+        if(FAILED(hr)) return E_FAIL;
+
+        if(!spDebugHost.try_as(spHostSymbols)) return E_FAIL;
+        hr = spHostSymbols->CreateTypeSignature(L"v8::internal::HeapObject", nullptr, spTypeSignature.put());
+        if(FAILED(hr)) return E_FAIL;
+        hr = spDataModelManager->RegisterModelForTypeSignature(spTypeSignature.get(), spSignatureModel.get());
         if(FAILED(hr)) return E_FAIL;
 
 		return S_OK;

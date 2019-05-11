@@ -22,7 +22,7 @@ a release directory to use and change the CMake command to:
 
 To debug the extension, launch a WinDbgx instance to debug with an active target, e.g.
 
-`windbgx notepad.exe`
+`windbgx \src\github\v8\out\x64.debug\d8.exe -e "console.log('hello');"`
 
 The WinDbgx process itself does not host the extensions, but a helper process.
 Attach another instance of WinDbgx to the enghost.exe helper process, e.g.
@@ -36,6 +36,8 @@ Set a breakpoint for when the extension initializes, e.g.
 Load the extension in the target debugger, which should trigger the breakpoint.
 
 `.load "C:\\src\\github\\dbgext\\x64\\dbgext.dll"`
+
+Note: For D8, d8_exe!v8::Shell::RunMain or ExecuteString is a good breakpoint to set.
 
 [DataModel Overview]: https://github.com/Microsoft/WinDbg-Libraries/tree/master/DbgModelCppLib
 [DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-objects#-the-data-model-manager
