@@ -43,16 +43,23 @@ struct MyHeapObject : winrt::implements<Foo, IDataModelConcept, IStringDisplayab
     {
         // Should be able to get the ptr_ property.
         winrt::com_ptr<IKeyEnumerator> spKeyEnumerator;
-        HRESULT hr = modelObject->EnumerateKeys(spKeyEnumerator.put());
+        HRESULT hr = modelObject->EnumerateKeyValues(spKeyEnumerator.put());
 
-        BSTR *pBSTR;
+        BSTR bstrKey = nullptr;
         winrt::com_ptr<IModelObject> spKeyValue;
         winrt::com_ptr<IKeyStore> spKeyStore;
+        ModelObjectKind objKind;
 
-        hr = spKeyEnumerator->GetNext(pBSTR, spKeyValue.put(), spKeyStore.put());
+      keyloop:
+        hr = spKeyEnumerator->GetNext(&bstrKey, spKeyValue.put(), spKeyStore.put());
         if(SUCCEEDED(hr))
         {
-            spKeyValue->
+            hr = spKeyValue->GetKind(&objKind);
+            // TODO: Get the value
+            SysFreeString(bstrKey);
+            spKeyValue = nullptr;
+            spKeyStore = nullptr;
+            goto keyloop;
         }
         return S_OK;
     }
@@ -61,6 +68,7 @@ struct MyHeapObject : winrt::implements<Foo, IDataModelConcept, IStringDisplayab
     {
         return E_NOTIMPL;
     }
+
     HRESULT __stdcall ToDisplayString(
         IModelObject* contextObject,
         IKeyStore* metadata,

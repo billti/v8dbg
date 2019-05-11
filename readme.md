@@ -39,5 +39,7 @@ Load the extension in the target debugger, which should trigger the breakpoint.
 
 Note: For D8, d8_exe!v8::Shell::RunMain or ExecuteString is a good breakpoint to set.
 
+`bp d8_exe!v8::Shell::ExecuteString`
+
 [DataModel Overview]: https://github.com/Microsoft/WinDbg-Libraries/tree/master/DbgModelCppLib
 [DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-objects#-the-data-model-manager
