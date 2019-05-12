@@ -41,6 +41,38 @@ struct MyHeapObject : winrt::implements<Foo, IDataModelConcept, IStringDisplayab
         IDebugHostSymbolEnumerator* wildcardMatches
     ) noexcept override
     {
+        winrt::com_ptr<IDebugHostType> spTypeInfo;
+        Location loc;
+        HRESULT hr2 = modelObject->GetTypeInfo(spTypeInfo.put()); // SymbolKind is SymbolType
+        hr2 = modelObject->GetLocation(&loc); // Returns the expects ptr location in Offset
+
+        SymbolKind thisKind;
+        BSTR thisName;
+        hr2 = spTypeInfo->GetSymbolKind(&thisKind); // Returns SymbolType
+        hr2 = spTypeInfo->GetName(&thisName);   // Returns "v8::internal::HeapObject"
+
+        winrt::com_ptr<IModelObject> spPtr_;
+        // Returns 0x01 - Incorrect function
+        hr2 = modelObject->GetRawValue(SymbolField, L"ptr_", RawSearchNone, spPtr_.put());
+        VARIANT intrinsic;
+        hr2 = spPtr_->GetIntrinsicValue(&intrinsic); // Actually has the right value for ptr_
+
+        winrt::com_ptr<IRawEnumerator> spRawEnum;
+        hr2 = modelObject->EnumerateRawValues(SymbolField, RawSearchNone, spRawEnum.put());
+        while(SUCCEEDED(hr2))
+        {
+            BSTR fieldName;
+            SymbolKind symKind;
+            winrt::com_ptr<IModelObject> spFieldValue;
+            // First GetNext fails with HRESULT 0x8000FFFF - Catastrophic Failure
+            hr2 = spRawEnum->GetNext(&fieldName, &symKind, spFieldValue.put());
+            if(SUCCEEDED(hr2))
+            {
+                ::SysFreeString(fieldName);
+                spFieldValue = nullptr;
+            }
+        }
+
         // Should be able to get the ptr_ property.
         winrt::com_ptr<IKeyEnumerator> spKeyEnumerator;
         HRESULT hr = modelObject->EnumerateKeyValues(spKeyEnumerator.put());
@@ -51,11 +83,11 @@ struct MyHeapObject : winrt::implements<Foo, IDataModelConcept, IStringDisplayab
         ModelObjectKind objKind;
 
       keyloop:
+        // This only gets one key, an ObjectMethod of 'ToDisplayString'
         hr = spKeyEnumerator->GetNext(&bstrKey, spKeyValue.put(), spKeyStore.put());
         if(SUCCEEDED(hr))
         {
             hr = spKeyValue->GetKind(&objKind);
-            // TODO: Get the value
             SysFreeString(bstrKey);
             spKeyValue = nullptr;
             spKeyStore = nullptr;
