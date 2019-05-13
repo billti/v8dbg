@@ -1,7 +1,6 @@
 #pragma once
-#include "../dbgext.h"
 
-extern winrt::com_ptr<IDataModelManager> spDataModelManager;
+#include "../dbgext.h"
 
 struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept, IStringDisplayableConcept>
 {
@@ -44,3 +43,5 @@ struct V8ObjectContentsProperty: winrt::implements<V8ObjectContentsProperty, IMo
         return E_NOTIMPL;
     }
 };
+
+HRESULT CreateHeapSyntheticObject(IDebugHostContext* pContext, ULONG64 heapAddress, IModelObject** ppResult);

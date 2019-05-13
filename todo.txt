@@ -5,33 +5,14 @@ To add a visualization for a type:
 3. Register the model for the signature with IDataModelManager->RegisterModelForTypeSignature
 4. The model created needs to be a component implementation with IDataModelConcept
 
-
-Register a model for v8::internal::Object
-Add a property accessor for properties "Map", "Type", and "Value".
-Use same property accessor for all properties, based on name requested.
-Check context first, if not set, initialize, if set, then use.
-The context should be an instance of a class with these properties.
-The file should be called .\src\v8_object.{cpp,h}
-Update CMakeLists.txt to include all .\src\*.{cpp,h} files from .\src.
-
-Add an parent on to Thread with a PropertyAccess for CurrentIsolate
-In the accessor see if the V8 field for current TLS slot is available.
-Try to retrieve the value in the slot.
-If above is successful, return that pointer cast to a v8::internal::isolate
-If not, return null.
-
-Figure out which object references need to be fetched on each use, and which
-can be global references created on initialization.
-
-Try and create a top level "data model" that uses the TLS slot to see which
-isolate is active on the thread.
-
-See if it could then enumerate the scripts/heap/functions/etc. from it.
+# Thread isolate
+1. Add an parent on to Thread with a PropertyAccess for CurrentIsolate
+2. In the accessor see if the V8 field for current TLS slot is available.
+3. Try to retrieve the value in the slot.
+4. If above is successful, return that pointer cast to a v8::internal::isolate
+5. If not, return null.
+6. See if it could then enumerate the scripts/heap/functions/etc. from it.
 
 Try to figure out the best way to model the object hierarchy.
 
 Try to create an 'enumerable' type on the map to show the slots on an object.
-
-Notes:
- - Use RegisterModelForTypeSignature to control how a type is displayed.
- https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/dbgmodel/nf-dbgmodel-idatamodelmanager-registermodelfortypesignature

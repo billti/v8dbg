@@ -5,7 +5,7 @@ project(dbgext)
 add_library(dbgext SHARED "dbgext.cpp" "dbgext.h" "dbgext.rc")
 
 # Add the implementation specific sources
-target_sources(dbgext PRIVATE src/object.cpp src/object.h)
+target_sources(dbgext PRIVATE "src/extension.cpp" "src/extension.h" "src/object.cpp" "src/object.h")
 
 # Should be found in the Windows SDK if using the right Developer Tools Prompt
 # Note: Finding them before linking them results in better errors if not found
