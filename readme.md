@@ -9,13 +9,12 @@ there also.
 
 ## Building
 
-Open a `Native x64 Developer Tools` command prompt installed by VS 2019.
-Create a .\x64 directory under the project and CD into it
-To create the build files run: `cmake -G Ninja ../`
-To build, in the same directory run: `ninja`
-(or, from the root directory, run `cmake --build ./x64`).
+1. Open a `Native x64 Developer Tools` command prompt installed by VS 2019.
+2. Create a `.\x64` directory under the project and CD into it.
+3. To create the build files run: `cmake -G Ninja ../`
+4. To build, in the same directory run: `ninja` (or, from the root directory, run `cmake --build ./x64`).
 
-The resulting dbgext.dll and pdb file should be generated in the build directory.
+The resulting `dbgext.dll` and symbols should be generated in the build directory.
 
 ### Release builds
 
@@ -38,9 +37,12 @@ Attach another instance of WinDbgx to the enghost.exe helper process, e.g.
 Set a breakpoint in the session for when the extension initializes, e.g.
 
 `bm dbgext!DebugExtensionInitialize`
+
+..and/or whenever it populates the V8 Object `Contents` property, e.g.
+
 `bm dbgext!V8ObjectContentsProperty::GetValue`
 
-Load the extension in the target debugger (first session), which should trigger the breakpoint.
+Load the extension in the target debugger (the first WinDbg session), which should trigger the breakpoint.
 
 `.load "C:\\src\\github\\dbgext\\x64\\dbgext.dll"`
 
@@ -48,8 +50,8 @@ Note: For D8, `d8_exe!v8::Shell::RunMain` or `ExecuteString` is a good breakpoin
 
 `bp d8_exe!v8::Shell::ExecuteString`
 
-Then trigger the `v8::internal::Object` model via something like:
+Then trigger the `v8::internal::Object` model code via something like:
 
 `dx (d8_exe!v8::internal::Object*)source.val_`
 
-[DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-objects#-the-data-model-manager
+[DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-overview
