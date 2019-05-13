@@ -10,21 +10,17 @@
 
 #include <winrt/base.h>
 
-struct MyPropertyAccessor : winrt::implements<MyPropertyAccessor, IModelPropertyAccessor>
+HRESULT inline CreateProperty(
+    IDataModelManager *pManager,
+    IModelPropertyAccessor *pProperty,
+    IModelObject **ppPropertyObject)
 {
+    *ppPropertyObject = nullptr;
 
-    HRESULT __stdcall GetValue(
-        PCWSTR key,
-        IModelObject* contextObject,
-        IModelObject** value
-    ) noexcept override;
+    VARIANT vtVal;
+    vtVal.vt = VT_UNKNOWN;
+    vtVal.punkVal = pProperty;
 
-    HRESULT __stdcall SetValue(
-        PCWSTR key,
-        IModelObject* contextObject,
-        IModelObject* value
-    ) noexcept override
-    {
-        return E_NOTIMPL;
-    }
-};
+    HRESULT hr = pManager->CreateIntrinsicObject(ObjectPropertyAccessor, &vtVal, ppPropertyObject);
+    return hr;
+}

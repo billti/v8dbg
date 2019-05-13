@@ -1,10 +1,14 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.10)
 project(dbgext)
 
-# The DLL to build
-add_library(dbgext SHARED "dbgext.cpp" "impl.cpp" "dbgext.h" "dbgext.rc")
+# Configure the debug extension with the minimal sources needed
+add_library(dbgext SHARED "dbgext.cpp" "dbgext.h" "dbgext.rc")
+
+# Add the implementation specific sources
+target_sources(dbgext PRIVATE src/object.cpp src/object.h)
 
 # Should be found in the Windows SDK if using the right Developer Tools Prompt
+# Note: Finding them before linking them results in better errors if not found
 find_library(DBGENG_LIB DbgEng)
 find_library(DBGMODEL_LIB DbgModel)
 find_library(RUNTIMEOBJECT_LIB RuntimeObject)

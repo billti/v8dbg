@@ -1,3 +1,25 @@
+To add a visualization for a type:
+
+1. Get the type signature for the type with IDebugSymbols->CreateTypeSignature
+2. Create an IModelObject for the parent with IDataModelManager->CreateDataModelObject
+3. Register the model for the signature with IDataModelManager->RegisterModelForTypeSignature
+4. The model created needs to be a component implementation with IDataModelConcept
+
+
+Register a model for v8::internal::Object
+Add a property accessor for properties "Map", "Type", and "Value".
+Use same property accessor for all properties, based on name requested.
+Check context first, if not set, initialize, if set, then use.
+The context should be an instance of a class with these properties.
+The file should be called .\src\v8_object.{cpp,h}
+Update CMakeLists.txt to include all .\src\*.{cpp,h} files from .\src.
+
+Add an parent on to Thread with a PropertyAccess for CurrentIsolate
+In the accessor see if the V8 field for current TLS slot is available.
+Try to retrieve the value in the slot.
+If above is successful, return that pointer cast to a v8::internal::isolate
+If not, return null.
+
 Figure out which object references need to be fetched on each use, and which
 can be global references created on initialization.
 

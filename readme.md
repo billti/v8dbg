@@ -8,6 +8,7 @@ Open a `Native x64 Developer Tools` command prompt installed by VS 2019.
 Create a .\x64 directory under the project and CD into it
 To create the project files run: `cmake -G Ninja ../`
 To build, in the same directory run: `ninja`
+(or, from the root directory, run `cmake --build ./x64`).
 
 The resulting dbgext.dll and pdb file should be generated in the directory.
 
@@ -16,7 +17,7 @@ The resulting dbgext.dll and pdb file should be generated in the directory.
 The above will create a debug build by default. To build a release build, create
 a release directory to use and change the CMake command to:
 
-`cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ../`
+`cmake -G Ninja -D CMAKE_BUILD_TYPE=RelWithDebInfo ../`
 
 ## Debugging the extension
 
@@ -32,7 +33,7 @@ Attach another instance of WinDbgx to the enghost.exe helper process, e.g.
 Set a breakpoint for when the extension initializes, e.g.
 
 `bm dbgext!DebugExtensionInitialize`
-or dbgext!MyHeapObject::InitializeObject
+`bm dbgext!V8ObjectContentsProperty::GetValue`
 
 Load the extension in the target debugger, which should trigger the breakpoint.
 
@@ -41,8 +42,7 @@ Load the extension in the target debugger, which should trigger the breakpoint.
 Note: For D8, d8_exe!v8::Shell::RunMain or ExecuteString is a good breakpoint to set.
 
 `bp d8_exe!v8::Shell::ExecuteString`
-`dx (d8_exe!v8::internal::HeapObject*)source.val_`
-0x00000159d1ceea98
+`dx (d8_exe!v8::internal::Object*)source.val_`
 
 [DataModel Overview]: https://github.com/Microsoft/WinDbg-Libraries/tree/master/DbgModelCppLib
 [DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-objects#-the-data-model-manager
