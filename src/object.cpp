@@ -1,5 +1,7 @@
 #include "object.h"
 #include "extension.h"
+#include "v8.h"
+#include "v8-layout.h"
 
 /*
 When queried for a v8::internal::Object, the steps are:
@@ -29,7 +31,7 @@ HRESULT V8ObjectContentsProperty::GetValue(
 
     if(heapAddress & 0x01) {
         // Tagged pointer. Clear the bottom 3 bits
-        heapAddress &= ~0x03ui64;
+        heapAddress = UnTagPtr(heapAddress);
         hr = CreateHeapSyntheticObject(spContext.get(), heapAddress, ppValue);
         return hr;
     } else {
@@ -48,11 +50,11 @@ HRESULT CreateHeapSyntheticObject(IDebugHostContext* pContext, ULONG64 heapAddre
     winrt::com_ptr<IModelObject> spHeapAddress;
     winrt::com_ptr<IModelObject> spMapAddress;
 
-    ULONG64 mapAddress;
+    uint64_t mapAddress;
     hr = Extension::currentExtension->spDebugMemory->ReadPointers(pContext, Location(heapAddress), 1, &mapAddress);
-    // TODO: Assert mapAddress & 0x01
+
     // Untag the pointer
-    mapAddress &= ~0x03ui64;
+    mapAddress = UnTagPtr(mapAddress);
 
     hr = CreateULong64(heapAddress, spHeapAddress.put());
     hr = CreateULong64(mapAddress, spMapAddress.put());
