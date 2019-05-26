@@ -1,3 +1,4 @@
+#include <crtdbg.h>
 #include "v8.h"
 #include "v8-layout.h"
 #include <Windows.h>

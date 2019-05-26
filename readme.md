@@ -41,6 +41,8 @@ Set a breakpoint in the session for when the extension initializes, e.g.
 ..and/or whenever it populates the V8 Object `Contents` property, e.g.
 
 `bm dbgext!V8ObjectContentsProperty::GetValue`
+`bm dbgext!V8ObjectDataModel::EnumerateKeys`
+`bm dbgext!V8ObjectDataModel::InitializeObject`
 
 Load the extension in the target debugger (the first WinDbg session), which should trigger the breakpoint.
 

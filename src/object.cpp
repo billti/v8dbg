@@ -1,3 +1,4 @@
+#include <crtdbg.h>
 #include "object.h"
 #include "extension.h"
 #include "v8.h"

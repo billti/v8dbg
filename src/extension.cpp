@@ -1,3 +1,4 @@
+#include <crtdbg.h>
 #include "extension.h"
 #include "object.h"
 
@@ -44,12 +45,15 @@ bool Extension::Initialize() {
     if(FAILED(hr)) return false;
     hr = spSignatureModel->SetConcept(__uuidof(IStringDisplayableConcept), objectDataModel.get(), nullptr);
     if(FAILED(hr)) return false;
+    auto iDynamic = objectDataModel.as<IDynamicKeyProviderConcept>();
+    hr = spSignatureModel->SetConcept(__uuidof(IDynamicKeyProviderConcept), iDynamic.get(), nullptr);
+    if(FAILED(hr)) return false;
 
     // Add the 'Contents' properties to add to the parent model.
-    auto contentsProperty{ winrt::make<V8ObjectContentsProperty>()};
-    winrt::com_ptr<IModelObject> spContentsPropertyModel;
-    hr = CreateProperty(spDataModelManager.get(), contentsProperty.get(), spContentsPropertyModel.put());
-    hr = spSignatureModel->SetKey(L"Contents", spContentsPropertyModel.get(), nullptr);
+    // auto contentsProperty{ winrt::make<V8ObjectContentsProperty>()};
+    // winrt::com_ptr<IModelObject> spContentsPropertyModel;
+    // hr = CreateProperty(spDataModelManager.get(), contentsProperty.get(), spContentsPropertyModel.put());
+    // hr = spSignatureModel->SetKey(L"Contents", spContentsPropertyModel.get(), nullptr);
 
     // Parent the model for the type
     if(!spDebugHost.try_as(spHostSymbols)) return false;

@@ -1,5 +1,6 @@
 // This file SHOULD BE generated to describe the object layouts in V8
 
+#include <crtdbg.h>
 #include "v8-layout.h"
 
 namespace V8::Layout {
