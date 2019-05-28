@@ -29,6 +29,8 @@ __declspec(dllexport) HRESULT __stdcall DebugExtensionCanUnload(void) {
 
 __declspec(dllexport) void __stdcall DebugExtensionUninitialize() {
   DestroyExtension();
+  spDebugHost = nullptr;
+  spDataModelManager = nullptr;
   _CrtDumpMemoryLeaks();
 }
 

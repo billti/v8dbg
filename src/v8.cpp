@@ -42,7 +42,9 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
   }
 
   obj.Map.TypeName = typeName->second->name;
-  if (typeName->second->name == u"v8::internal::SeqOneByteString") {
+
+  // TODO: Loop through the properties reading/populating the vector
+  if (std::u16string{typeName->second->name}.compare(u"v8::internal::SeqOneByteString") == 0) {
     int strLength;
     ReadTypeFromMemory(memReader, obj.HeapAddress + 12, &strLength);
     const char* strAddress =
