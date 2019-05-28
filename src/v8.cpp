@@ -47,12 +47,13 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
   if (std::u16string{typeName->second->name}.compare(u"v8::internal::SeqOneByteString") == 0) {
     int strLength;
     ReadTypeFromMemory(memReader, obj.HeapAddress + 12, &strLength);
-    const char* strAddress =
-        reinterpret_cast<const char*>(obj.HeapAddress + 16);
+    uint64_t strAddress = obj.HeapAddress + 16;
 
     // Need to get the single-byte representation and convert
-    std::string strValueUtf8(strAddress, strLength);
-    std::u16string strValue = ConvertToU16String(strValueUtf8);
+    // Create a null initialized string one longer than the length
+    std::string strValueSingleByte(static_cast<size_t>(strLength + 1), '\0');
+    memReader(strAddress, strLength, reinterpret_cast<uint8_t*>(strValueSingleByte.data()));
+    std::u16string strValue = ConvertToU16String(strValueSingleByte);
 
     obj.Properties.push_back(Property{u"Length", strLength});
     obj.Properties.push_back(Property{u"Value", strValue});

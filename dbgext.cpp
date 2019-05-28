@@ -24,7 +24,8 @@ __declspec(dllexport) HRESULT __stdcall DebugExtensionInitialize(PULONG /*pVersi
 }
 
 __declspec(dllexport) HRESULT __stdcall DebugExtensionCanUnload(void) {
-  return winrt::get_module_lock() ? S_FALSE : S_OK;
+  auto lock_count = winrt::get_module_lock().load();
+  return lock_count == 0;
 }
 
 __declspec(dllexport) void __stdcall DebugExtensionUninitialize() {

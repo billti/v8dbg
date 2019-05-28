@@ -105,7 +105,7 @@ HRESULT inline CreateString(
   IModelObject **ppVal)
 {
   HRESULT hr = S_OK;
-  ppVal = nullptr;
+  *ppVal = nullptr;
 
   VARIANT vtVal;
   vtVal.vt = VT_BSTR;
