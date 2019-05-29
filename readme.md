@@ -1,6 +1,7 @@
 # DbgExt
 This project shows a basic example of a debugger extension. It uses the DataModel
-as much as possible (see [DataModel Manager]) via the native interfaces.
+as much as possible (see [DataModel Manager]) via the native interfaces using the
+[C++/WinRT COM] APIs.
 
 The source in the root directory is a generic starting point for implementation.
 The custom code should implement the two methods declared near the top of
@@ -43,6 +44,10 @@ Set a breakpoint in the session for when the extension initializes, e.g.
 `bm dbgext!V8ObjectContentsProperty::GetValue`
 `bm dbgext!V8ObjectDataModel::EnumerateKeys`
 `bm dbgext!V8ObjectDataModel::InitializeObject`
+`bp dbgext!V8ObjectDataModel::GetCachedObject`
+`bp dbgext!GetHeapObject`
+`bp dbgext!V8CachedObject::V8CachedObject`
+`bp dbgext!V8ObjectDataModel::GetKey`
 
 Load the extension in the target debugger (the first WinDbg session), which should trigger the breakpoint.
 
@@ -55,5 +60,7 @@ Note: For D8, `d8_exe!v8::Shell::RunMain` or `ExecuteString` is a good breakpoin
 Then trigger the `v8::internal::Object` model code via something like:
 
 `dx (d8_exe!v8::internal::Object*)source.val_`
+`dx (v8::internal::Object*) (*(uint64_t*)source.val_ - 1)`
 
 [DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-overview
+[C++/WinRT COM]: https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/consume-com

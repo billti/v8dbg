@@ -41,7 +41,6 @@ struct V8ObjectKeyEnumerator: winrt::implements<V8ObjectKeyEnumerator, IKeyEnume
   V8ObjectKeyEnumerator(winrt::com_ptr<IV8CachedObject> &v8CachedObject)
       :spV8CachedObject{v8CachedObject} {}
 
-  std::vector<std::wstring> names = {L"FirstProp", L"SecondProp"};
   int index = 0;
   winrt::com_ptr<IV8CachedObject> spV8CachedObject;
 
