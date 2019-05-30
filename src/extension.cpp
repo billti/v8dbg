@@ -68,6 +68,7 @@ bool Extension::Initialize() {
 }
 
 Extension::~Extension() {
+  _RPTF0(_CRT_WARN, "Entered Extension::~Extension\n");
   spDataModelManager->UnregisterModelForTypeSignature(spSignatureModel.get(),
                                                       spTypeSignature.get());
 }

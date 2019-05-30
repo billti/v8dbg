@@ -1,6 +1,8 @@
-#include <crtdbg.h>
 #include "dbgext.h"
+#include <crtdbg.h>
 
+// See https://docs.microsoft.com/en-us/visualstudio/debugger/crt-debugging-techniques
+// for the memory leak and debugger reporting macros used from <crtdbg.h>
 _CrtMemState memOld, memNew, memDiff;
 
 winrt::com_ptr<IDataModelManager> spDataModelManager;
@@ -8,9 +10,10 @@ winrt::com_ptr<IDebugHost> spDebugHost;
 
 extern "C" {
 
-__declspec(dllexport) HRESULT __stdcall DebugExtensionInitialize(PULONG /*pVersion*/, PULONG /*pFlags*/) {
+__declspec(dllexport) HRESULT
+    __stdcall DebugExtensionInitialize(PULONG /*pVersion*/, PULONG /*pFlags*/) {
   _RPTF0(_CRT_WARN, "Entered DebugExtensionInitialize\n");
-  _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+  _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
   _CrtMemCheckpoint(&memOld);
 
   winrt::com_ptr<IDebugClient> spDebugClient;
@@ -44,7 +47,8 @@ __declspec(dllexport) void __stdcall DebugExtensionUninitialize() {
 __declspec(dllexport) HRESULT __stdcall DebugExtensionCanUnload(void) {
   _RPTF0(_CRT_WARN, "Entered DebugExtensionCanUnload\n");
   uint32_t lock_count = winrt::get_module_lock().load();
-  _RPTF1(_CRT_WARN, "module_lock count in DebugExtensionCanUnload is %d\n", lock_count);
+  _RPTF1(_CRT_WARN, "module_lock count in DebugExtensionCanUnload is %d\n",
+         lock_count);
   return lock_count == 0 ? S_OK : S_FALSE;
 }
 
@@ -53,4 +57,4 @@ __declspec(dllexport) void __stdcall DebugExtensionUnload() {
   return;
 }
 
-} // extern "C"
+}  // extern "C"

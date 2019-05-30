@@ -1,9 +1,11 @@
-To add a visualization for a type:
-
-1. Get the type signature for the type with IDebugSymbols->CreateTypeSignature
-2. Create an IModelObject for the parent with IDataModelManager->CreateDataModelObject
-3. Register the model for the signature with IDataModelManager->RegisterModelForTypeSignature
-4. The model created needs to be a component implementation with IDataModelConcept
+# Clen up existing functionality
+ - Handle Local<*> and MaybeLocal<*>
+ - Handle SMIs
+ - Set the DisplayString
+ - Use the dynamic property list, not the current hard-coded list
+ - Try to handle JSObject and JSArray with an enumerator
+ - Abstract away Address manipulation to handle pointer compression
+ - Handle memory read failures
 
 # Thread isolate
 1. Add an parent on to Thread with a PropertyAccess for CurrentIsolate
@@ -13,6 +15,7 @@ To add a visualization for a type:
 5. If not, return null.
 6. See if it could then enumerate the scripts/heap/functions/etc. from it.
 
-Try to figure out the best way to model the object hierarchy.
-
-Try to create an 'enumerable' type on the map to show the slots on an object.
+# Misc
+- Try to figure out the best way to model the object hierarchy.
+- Try to create an 'enumerable' type on the map to show the slots on an object.
+- Is it of use to show map transitions in some way?
