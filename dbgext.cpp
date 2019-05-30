@@ -42,6 +42,9 @@ __declspec(dllexport) void __stdcall DebugExtensionUninitialize() {
   if (_CrtMemDifference(&memDiff, &memOld, &memNew)) {
     _CrtMemDumpStatistics(&memDiff);
   }
+  if (_CrtDumpMemoryLeaks()) {
+    _RPTF0(_CRT_ERROR, "Memory leaks detected!\n");
+  }
 }
 
 __declspec(dllexport) HRESULT __stdcall DebugExtensionCanUnload(void) {

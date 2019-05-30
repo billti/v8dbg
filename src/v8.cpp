@@ -1,6 +1,6 @@
 #include <crtdbg.h>
+#include "extension.h"
 #include "v8.h"
-#include "v8-layout.h"
 #include <Windows.h>
 
 #if defined(WIN32)
@@ -34,17 +34,19 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
   uint64_t instanceTypeAddr = obj.Map.HeapAddress + 12;
   ReadTypeFromMemory(memReader, instanceTypeAddr, &obj.Map.InstanceType);
 
-  auto typeName = V8::Layout::InstanceTypeToDescriptor.find(obj.Map.InstanceType);
+  V8::Layout::V8Layout& v8Layout = Extension::currentExtension->v8Layout;
 
-  if (typeName == V8::Layout::InstanceTypeToDescriptor.end()) {
+  auto typeName = v8Layout.InstanceTypeToTypeName.find(obj.Map.InstanceType);
+
+  if (typeName == v8Layout.InstanceTypeToTypeName.end()) {
     // Couldn't find the type of object from the map. Not much else can be done.
     return obj;
   }
 
-  obj.Map.TypeName = typeName->second->name;
+  obj.Map.TypeName = typeName->second;
 
   // TODO: Loop through the properties reading/populating the vector
-  if (std::u16string{typeName->second->name}.compare(u"v8::internal::SeqOneByteString") == 0) {
+  if (typeName->second.compare(u"v8::internal::SeqOneByteString") == 0) {
     int strLength;
     ReadTypeFromMemory(memReader, obj.HeapAddress + 12, &strLength);
     uint64_t strAddress = obj.HeapAddress + 16;
