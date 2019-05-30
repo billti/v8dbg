@@ -71,6 +71,22 @@ struct V8ObjectKeyEnumerator: winrt::implements<V8ObjectKeyEnumerator, IKeyEnume
   }
 };
 
+struct V8LocalDataModel: winrt::implements<V8LocalDataModel, IDataModelConcept> {
+    HRESULT __stdcall InitializeObject(
+        IModelObject* modelObject,
+        IDebugHostTypeSignature* matchingTypeSignature,
+        IDebugHostSymbolEnumerator* wildcardMatches
+    ) noexcept override
+    {
+        return S_OK;
+    }
+
+    HRESULT __stdcall GetName( BSTR* modelName) noexcept override
+    {
+        return E_NOTIMPL;
+    }
+};
+
 struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept, IStringDisplayableConcept, IDynamicKeyProviderConcept>
 {
     winrt::com_ptr<IV8CachedObject> GetCachedObject(IModelObject* contextObject) {
@@ -116,8 +132,15 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
         BSTR* displayString
     ) noexcept override
     {
-        *displayString = ::SysAllocString(L"V8 Object");
-        return S_OK;
+      winrt::com_ptr<IV8CachedObject> spV8CachedObject = GetCachedObject(contextObject);
+      V8HeapObject* pV8HeapObject;
+      HRESULT hr = spV8CachedObject->GetCachedV8HeapObject(&pV8HeapObject);
+      if (pV8HeapObject && pV8HeapObject->FriendlyName.size() > 0) {
+        *displayString = ::SysAllocString(reinterpret_cast<wchar_t*>(pV8HeapObject->FriendlyName.data()));
+      } else {
+        *displayString = ::SysAllocString(L"<V8 Object>");
+      }
+      return S_OK;
     }
 
     // IDynamicKeyProviderConcept
@@ -197,8 +220,7 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
     }
 };
 
-// TODO: Below is not currently used.
-struct V8ObjectContentsProperty: winrt::implements<V8ObjectContentsProperty, IModelPropertyAccessor>
+struct V8LocalValueProperty: winrt::implements<V8LocalValueProperty, IModelPropertyAccessor>
 {
     HRESULT __stdcall GetValue(
         PCWSTR pwszKey,
@@ -214,4 +236,5 @@ struct V8ObjectContentsProperty: winrt::implements<V8ObjectContentsProperty, IMo
     }
 };
 
+// TODO: Below is not currently used.
 HRESULT CreateHeapSyntheticObject(IDebugHostContext* pContext, ULONG64 heapAddress, IModelObject** ppResult);

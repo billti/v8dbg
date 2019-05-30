@@ -11,7 +11,7 @@ inline std::u16string ConvertToU16String(std::string utf8String) {
 
   // On Windows wchar_t is the same a 16char_t
   static_assert(sizeof(wchar_t) == sizeof(char16_t));
-  lenChars = ::MultiByteToWideChar(CP_UTF8, 0, utf8String.c_str(), -1, 
+  lenChars = ::MultiByteToWideChar(CP_UTF8, 0, utf8String.c_str(), -1,
       reinterpret_cast<wchar_t*>(pBuff), lenChars);
   std::u16string result{pBuff};
   free(pBuff);
@@ -23,12 +23,20 @@ inline std::u16string ConvertToU16String(std::string utf8String) {
 #endif
 
 V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
+  // Read the value at the address, and see if it is a tagged pointer
+
   V8HeapObject obj;
-  obj.HeapAddress = address;
+  ReadTypeFromMemory(memReader, address, &obj.HeapAddress);
+
+  if (obj.HeapAddress & 0x01) {
+    obj.HeapAddress = UnTagPtr(obj.HeapAddress);
+  } else {
+    // TODO: It's a Smi
+  }
 
   // The first value in the Object's memory space is the Map pointer.
   // This is also tagged, so clear the low 2 bits.
-  ReadTypeFromMemory(memReader, address, &obj.Map.HeapAddress);
+  ReadTypeFromMemory(memReader, obj.HeapAddress, &obj.Map.HeapAddress);
   obj.Map.HeapAddress = UnTagPtr(obj.Map.HeapAddress);
 
   uint64_t instanceTypeAddr = obj.Map.HeapAddress + 12;
@@ -59,7 +67,8 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
 
     obj.Properties.push_back(Property{u"Length", strLength});
     obj.Properties.push_back(Property{u"Value", strValue});
-    // TODO: obj.FriendlyName
+
+    obj.FriendlyName = std::u16string{u"<SeqOneByteString>: "} + strValue;
   }
 
   return obj;

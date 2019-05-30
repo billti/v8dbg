@@ -10,7 +10,11 @@ class Extension {
   static Extension* currentExtension;
 
   winrt::com_ptr<IDebugHostMemory2> spDebugMemory;
-  winrt::com_ptr<IDebugHostTypeSignature> spTypeSignature;
-  winrt::com_ptr<IModelObject> spSignatureModel;
+  winrt::com_ptr<IDebugHostSymbols> spHostSymbols;
+
+  winrt::com_ptr<IDebugHostTypeSignature> spObjectTypeSignature;
+  winrt::com_ptr<IDebugHostTypeSignature> spLocalTypeSignature;
+  winrt::com_ptr<IModelObject> spObjectDataModel;
+  winrt::com_ptr<IModelObject> spLocalDataModel;
   V8::Layout::V8Layout v8Layout;
 };
