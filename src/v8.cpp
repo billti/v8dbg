@@ -22,22 +22,28 @@ inline std::u16string ConvertToU16String(std::string utf8String) {
   #error String encoding conversion must be provided for the target platform.
 #endif
 
-V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
+V8HeapObject GetHeapObject(MemReader memReader, uint64_t taggedPtr) {
   // Read the value at the address, and see if it is a tagged pointer
 
   V8HeapObject obj;
-  ReadTypeFromMemory(memReader, address, &obj.HeapAddress);
 
-  if (obj.HeapAddress & 0x01) {
-    obj.HeapAddress = UnTagPtr(obj.HeapAddress);
-  } else {
-    // TODO: Only handles 64-bit platforms with uncompressed pointers currently
-    obj.IsSmi = true;
-    obj.HeapAddress = static_cast<int>(static_cast<intptr_t>(obj.HeapAddress) >> 32);
-    std::wstring smiValue = std::to_wstring(obj.HeapAddress);
-    obj.FriendlyName = std::u16string{u"<Smi>: "} + reinterpret_cast<const char16_t*>(smiValue.c_str());
+  // Check for non-objects first
+  if (!(taggedPtr & 0x01)) {
+    if (taggedPtr == 0xCCCCCCCCCCCCCCCC)
+    {
+      obj.HeapAddress = taggedPtr;
+      obj.FriendlyName = u"<uninitialized>";
+    } else {
+      // TODO: Only handles 64-bit platforms with uncompressed pointers currently
+      obj.IsSmi = true;
+      obj.HeapAddress = static_cast<int>(static_cast<intptr_t>(taggedPtr) >> 32);
+      std::wstring smiValue = std::to_wstring(obj.HeapAddress);
+      obj.FriendlyName = std::u16string{u"<Smi>: "} + reinterpret_cast<const char16_t*>(smiValue.c_str());
+    }
+    return obj;
   }
 
+  obj.HeapAddress = UnTagPtr(taggedPtr);
   // The first value in the Object's memory space is the Map pointer.
   // This is also tagged, so clear the low 2 bits.
   ReadTypeFromMemory(memReader, obj.HeapAddress, &obj.Map.HeapAddress);

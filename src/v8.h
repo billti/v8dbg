@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
 
-using MemReader = bool (*)(uint64_t address, size_t size, uint8_t* buffer);
+using MemReader = std::function<bool(uint64_t address, size_t size, uint8_t* buffer)>;
 
 inline uint64_t UnTagPtr(uint64_t ptr) { return ptr &= ~0x03ull; }
 
