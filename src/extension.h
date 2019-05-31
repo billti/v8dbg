@@ -14,6 +14,7 @@ class Extension {
 
   winrt::com_ptr<IDebugHostTypeSignature> spObjectTypeSignature;
   winrt::com_ptr<IDebugHostTypeSignature> spLocalTypeSignature;
+  winrt::com_ptr<IDebugHostTypeSignature> spMaybeLocalTypeSignature;
   winrt::com_ptr<IModelObject> spObjectDataModel;
   winrt::com_ptr<IModelObject> spLocalDataModel;
   V8::Layout::V8Layout v8Layout;

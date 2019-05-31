@@ -1,6 +1,7 @@
-# Clen up existing functionality
- - Handle Local<*> and MaybeLocal<*>
- - Handle SMIs
+# Clean up existing functionality
+ x Handle Local<*> and MaybeLocal<*>
+ x Handle SMIs
+ - Handle v8::internal::Handle<*> & v8::internal::MaybeHandle<*>
  - Set the DisplayString
  - Use the dynamic property list, not the current hard-coded list
  - Try to handle JSObject and JSArray with an enumerator

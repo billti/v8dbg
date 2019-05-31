@@ -51,6 +51,7 @@ struct V8MapObject {
 
 struct V8HeapObject {
   uint64_t HeapAddress;
+  bool IsSmi = false;
   std::u16string FriendlyName;  // e.g. string: "Hello, world"
   V8MapObject Map;
   std::vector<Property> Properties;

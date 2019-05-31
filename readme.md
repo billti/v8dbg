@@ -30,6 +30,10 @@ To debug the extension, launch a WinDbgx instance to debug with an active target
 
 `windbgx \src\github\v8\out\x64.debug\d8.exe -e "console.log('hello');"`
 
+or
+
+`windbgx \src\github\v8\out\x64.debug\d8.exe c:\temp\test.js`
+
 The WinDbgx process itself does not host the extensions, but a helper process.
 Attach another instance of WinDbgx to the enghost.exe helper process, e.g.
 

@@ -31,7 +31,11 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t address) {
   if (obj.HeapAddress & 0x01) {
     obj.HeapAddress = UnTagPtr(obj.HeapAddress);
   } else {
-    // TODO: It's a Smi
+    // TODO: Only handles 64-bit platforms with uncompressed pointers currently
+    obj.IsSmi = true;
+    obj.HeapAddress = static_cast<int>(static_cast<intptr_t>(obj.HeapAddress) >> 32);
+    std::wstring smiValue = std::to_wstring(obj.HeapAddress);
+    obj.FriendlyName = std::u16string{u"<Smi>: "} + reinterpret_cast<const char16_t*>(smiValue.c_str());
   }
 
   // The first value in the Object's memory space is the Map pointer.

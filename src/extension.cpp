@@ -67,6 +67,9 @@ bool Extension::Initialize() {
   hr = spHostSymbols->CreateTypeSignature(L"v8::Local<*>", nullptr,
                                           spLocalTypeSignature.put());
   if (FAILED(hr)) return false;
+  hr = spHostSymbols->CreateTypeSignature(L"v8::MaybeLocal<*>", nullptr,
+                                          spMaybeLocalTypeSignature.put());
+  if (FAILED(hr)) return false;
 
   // Add the 'Value' property to the parent model.
   auto localValueProperty{winrt::make<V8LocalValueProperty>()};
@@ -76,9 +79,10 @@ bool Extension::Initialize() {
   hr = spLocalDataModel->SetKey(L"Value", spLocalValuePropertyModel.get(),
                                 nullptr);
   // Register the DataModel as the viewer for the type signature
-
   hr = spDataModelManager->RegisterModelForTypeSignature(
       spLocalTypeSignature.get(), spLocalDataModel.get());
+  hr = spDataModelManager->RegisterModelForTypeSignature(
+      spMaybeLocalTypeSignature.get(), spLocalDataModel.get());
 
   return !FAILED(hr);
 }
@@ -89,4 +93,6 @@ Extension::~Extension() {
                                                       spObjectTypeSignature.get());
   spDataModelManager->UnregisterModelForTypeSignature(
       spLocalDataModel.get(), spLocalTypeSignature.get());
+  spDataModelManager->UnregisterModelForTypeSignature(
+      spLocalDataModel.get(), spMaybeLocalTypeSignature.get());
 }

@@ -27,6 +27,10 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
 
   winrt::com_ptr<IDebugHostModule> spModule;
   winrt::com_ptr<IDebugHostType> spV8ObjectType;
+
+  // TODO: It may be that the initial type and the V8 DLL are in different
+  // modules, e.g. v8::Local could be in d8.exe, whereas most V8 types are in
+  // v8.dll. Maybe just do a general search (not specific to a module)?
   hr = spType->GetContainingModule(spModule.put());
   hr = spModule->FindTypeByName(L"v8::internal::Object", spV8ObjectType.put());
 
@@ -43,8 +47,14 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
   hr = ext->spDebugMemory->ReadPointers(spContext.get(), loc, 1, &objAddress);
   if (FAILED(hr)) return hr;
 
-  // Should be a v8::internal::Object at the address
-  hr = spDataModelManager->CreateTypedObject(spContext.get(), objAddress, spV8ObjectType.get(), ppValue);
+  // If the val_ is a nullptr, then there is no value in the Local.
+  if(objAddress == 0) {
+    hr = CreateString(std::u16string{u"<empty>"}, ppValue);
+  } else {
+    // Should be a v8::internal::Object at the address
+    hr = spDataModelManager->CreateTypedObject(spContext.get(), objAddress, spV8ObjectType.get(), ppValue);
+  }
+
   return hr;
 }
 
