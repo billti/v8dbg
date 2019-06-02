@@ -2,11 +2,12 @@
  x Handle Local<*> and MaybeLocal<*>
  x Handle SMIs
  - Handle v8::internal::Handle<*> & v8::internal::MaybeHandle<*>
- - Set the DisplayString
+ x Set the DisplayString
  - Use the dynamic property list, not the current hard-coded list
  - Try to handle JSObject and JSArray with an enumerator
  - Abstract away Address manipulation to handle pointer compression
  - Handle memory read failures
+ - Support Linq expressions on object collections
 
 # Thread isolate
 1. Add an parent on to Thread with a PropertyAccess for CurrentIsolate

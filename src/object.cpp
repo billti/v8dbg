@@ -23,6 +23,8 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
 
   winrt::com_ptr<IDebugHostSymbol> spGenericArg;
   hr = spType->GetGenericArgumentAt(0, spGenericArg.put());
+  // TODO: Rather than treat everything as v8::internal::Object, just treat as
+  // the generic type if derived from v8::internal::Object.
   if (FAILED(hr)) return hr;
 
   winrt::com_ptr<IDebugHostModule> spModule;

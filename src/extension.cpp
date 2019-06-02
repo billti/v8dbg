@@ -1,5 +1,6 @@
 #include "extension.h"
 #include <crtdbg.h>
+#include "curr-isolate.h"
 #include "object.h"
 
 Extension* Extension::currentExtension = nullptr;
@@ -35,6 +36,7 @@ bool Extension::Initialize() {
 
   if (!spDebugHost.try_as(spDebugMemory)) return false;
   if (!spDebugHost.try_as(spHostSymbols)) return false;
+  if (!spDebugHost.try_as(spDebugHostExtensibility)) return false;
 
   // Create an instance of the DataModel 'parent' for v8::internal::Object types
   auto objectDataModel{winrt::make<V8ObjectDataModel>()};
@@ -42,11 +44,11 @@ bool Extension::Initialize() {
       objectDataModel.get(), spObjectDataModel.put());
   if (FAILED(hr)) return false;
   hr = spObjectDataModel->SetConcept(__uuidof(IStringDisplayableConcept),
-                                    objectDataModel.get(), nullptr);
+                                     objectDataModel.get(), nullptr);
   if (FAILED(hr)) return false;
   auto iDynamic = objectDataModel.as<IDynamicKeyProviderConcept>();
   hr = spObjectDataModel->SetConcept(__uuidof(IDynamicKeyProviderConcept),
-                                    iDynamic.get(), nullptr);
+                                     iDynamic.get(), nullptr);
   if (FAILED(hr)) return false;
 
   // Parent the model for the type
@@ -84,13 +86,28 @@ bool Extension::Initialize() {
   hr = spDataModelManager->RegisterModelForTypeSignature(
       spMaybeLocalTypeSignature.get(), spLocalDataModel.get());
 
+  // Register the @$currisolate function alias.
+  auto currIsolateFunction{winrt::make<CurrIsolateAlias>()};
+
+  VARIANT vtCurrIsolateFunction;
+  vtCurrIsolateFunction.vt = VT_UNKNOWN;
+  vtCurrIsolateFunction.punkVal =
+      static_cast<IModelMethod*>(currIsolateFunction.get());
+
+  hr = spDataModelManager->CreateIntrinsicObject(
+      ObjectMethod, &vtCurrIsolateFunction, spCurrIsolateModel.put());
+  hr = spDebugHostExtensibility->CreateFunctionAlias(L"currisolate",
+                                                     spCurrIsolateModel.get());
+
   return !FAILED(hr);
 }
 
 Extension::~Extension() {
   _RPTF0(_CRT_WARN, "Entered Extension::~Extension\n");
-  spDataModelManager->UnregisterModelForTypeSignature(spObjectDataModel.get(),
-                                                      spObjectTypeSignature.get());
+  spDebugHostExtensibility->DestroyFunctionAlias(L"currisolate");
+
+  spDataModelManager->UnregisterModelForTypeSignature(
+      spObjectDataModel.get(), spObjectTypeSignature.get());
   spDataModelManager->UnregisterModelForTypeSignature(
       spLocalDataModel.get(), spLocalTypeSignature.get());
   spDataModelManager->UnregisterModelForTypeSignature(
