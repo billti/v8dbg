@@ -46,6 +46,7 @@ Set a breakpoint in the session for when the extension initializes, e.g.
 ..and/or whenever it populates the V8 Object `Contents` property, e.g.
 
 ```text
+bp dbgext!CurrIsolateAlias::Call
 bm dbgext!V9ObjectDataModel::EnumerateKeys
 bm dbgext!V8ObjectDataModel::InitializeObject
 bp dbgext!V8ObjectDataModel::GetCachedObject

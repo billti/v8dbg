@@ -4,6 +4,7 @@
 #include "object.h"
 
 Extension* Extension::currentExtension = nullptr;
+const wchar_t *pcurIsolate = L"curisolate";
 
 bool CreateExtension() {
   _RPTF0(_CRT_WARN, "Entered CreateExtension\n");
@@ -96,7 +97,7 @@ bool Extension::Initialize() {
 
   hr = spDataModelManager->CreateIntrinsicObject(
       ObjectMethod, &vtCurrIsolateFunction, spCurrIsolateModel.put());
-  hr = spDebugHostExtensibility->CreateFunctionAlias(L"currisolate",
+  hr = spDebugHostExtensibility->CreateFunctionAlias(pcurIsolate,
                                                      spCurrIsolateModel.get());
 
   return !FAILED(hr);
@@ -104,7 +105,7 @@ bool Extension::Initialize() {
 
 Extension::~Extension() {
   _RPTF0(_CRT_WARN, "Entered Extension::~Extension\n");
-  spDebugHostExtensibility->DestroyFunctionAlias(L"currisolate");
+  spDebugHostExtensibility->DestroyFunctionAlias(pcurIsolate);
 
   spDataModelManager->UnregisterModelForTypeSignature(
       spObjectDataModel.get(), spObjectTypeSignature.get());
