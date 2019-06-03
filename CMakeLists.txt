@@ -2,11 +2,11 @@ cmake_minimum_required (VERSION 3.10)
 project(dbgext)
 
 # Configure the debug extension with the minimal sources needed
-add_library(dbgext SHARED "dbgext.cpp" "dbgext.h" "dbgext.rc")
+add_library(dbgext SHARED "dbgext.cpp" "dbgext.h" "dbgext.rc" "utilities.cpp" "utilities.h")
 
 # Add the implementation specific sources
 target_sources(dbgext PRIVATE "src/extension.cpp" "src/extension.h" "src/object.cpp" "src/object.h")
-target_sources(dbgext PRIVATE "src/v8.cpp" "src/v8.h" "src/v8-layout.h" "src/curr-isolate.h")
+target_sources(dbgext PRIVATE "src/v8.cpp" "src/v8.h" "src/v8-layout.h" "src/curisolate.cpp" "src/curisolate.h")
 
 # Should be found in the Windows SDK if using the right Developer Tools Prompt
 # Note: Finding them before linking them results in better errors if not found

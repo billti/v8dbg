@@ -25,12 +25,12 @@ struct V8CachedObject: winrt::implements<V8CachedObject, IV8CachedObject> {
     auto memReader = [&spContext](uint64_t address, size_t size, uint8_t *pBuffer) {
       ULONG64 bytes_read;
       Location loc{address};
-      HRESULT hr = Extension::currentExtension->spDebugMemory->ReadBytes(spContext.get(), loc, pBuffer, size, &bytes_read);
+      HRESULT hr = Extension::currentExtension->spDebugHostMemory->ReadBytes(spContext.get(), loc, pBuffer, size, &bytes_read);
       return SUCCEEDED(hr);
     };
 
     uint64_t taggedPtr;
-    Extension::currentExtension->spDebugMemory->ReadPointers(spContext.get(), loc, 1, &taggedPtr);
+    Extension::currentExtension->spDebugHostMemory->ReadPointers(spContext.get(), loc, 1, &taggedPtr);
     heapObject = ::GetHeapObject(memReader, taggedPtr);
   }
 
@@ -241,6 +241,3 @@ struct V8LocalValueProperty: winrt::implements<V8LocalValueProperty, IModelPrope
         return E_NOTIMPL;
     }
 };
-
-// TODO: Below is not currently used.
-HRESULT CreateHeapSyntheticObject(IDebugHostContext* pContext, ULONG64 heapAddress, IModelObject** ppResult);

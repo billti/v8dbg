@@ -1,4 +1,4 @@
-#include <crtdbg.h>
+#include "../utilities.h"
 #include "object.h"
 #include "extension.h"
 #include "v8-layout.h"
@@ -46,7 +46,7 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
   ULONG64 objAddress;
   hr = pV8LocalInstance->GetContext(spContext.put());
   if (FAILED(hr)) return hr;
-  hr = ext->spDebugMemory->ReadPointers(spContext.get(), loc, 1, &objAddress);
+  hr = ext->spDebugHostMemory->ReadPointers(spContext.get(), loc, 1, &objAddress);
   if (FAILED(hr)) return hr;
 
   // If the val_ is a nullptr, then there is no value in the Local.
@@ -58,26 +58,4 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
   }
 
   return hr;
-}
-
-// Note: Below is not used. Here for reference purposes.
-HRESULT CreateHeapSyntheticObject(IDebugHostContext* pContext,
-                                  ULONG64 heapAddress,
-                                  IModelObject** ppResult) {
-  HRESULT hr = spDataModelManager->CreateSyntheticObject(pContext, ppResult);
-  winrt::com_ptr<IModelObject> spHeapAddress;
-  winrt::com_ptr<IModelObject> spMapAddress;
-
-  uint64_t mapAddress;
-  hr = Extension::currentExtension->spDebugMemory->ReadPointers(
-      pContext, Location(heapAddress), 1, &mapAddress);
-
-  // Untag the pointer
-  mapAddress = UnTagPtr(mapAddress);
-
-  hr = CreateULong64(heapAddress, spHeapAddress.put());
-  hr = CreateULong64(mapAddress, spMapAddress.put());
-  hr = (*ppResult)->SetKey(L"HeapAddress", spHeapAddress.get(), nullptr);
-  hr = (*ppResult)->SetKey(L"MapAddress", spMapAddress.get(), nullptr);
-  return S_OK;
 }

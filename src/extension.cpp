@@ -1,6 +1,6 @@
+#include "../utilities.h"
 #include "extension.h"
-#include <crtdbg.h>
-#include "curr-isolate.h"
+#include "curisolate.h"
 #include "object.h"
 
 Extension* Extension::currentExtension = nullptr;
@@ -35,8 +35,8 @@ void DestroyExtension() {
 bool Extension::Initialize() {
   _RPTF0(_CRT_WARN, "Entered ExtensionInitialize\n");
 
-  if (!spDebugHost.try_as(spDebugMemory)) return false;
-  if (!spDebugHost.try_as(spHostSymbols)) return false;
+  if (!spDebugHost.try_as(spDebugHostMemory)) return false;
+  if (!spDebugHost.try_as(spDebugHostSymbols)) return false;
   if (!spDebugHost.try_as(spDebugHostExtensibility)) return false;
 
   // Create an instance of the DataModel 'parent' for v8::internal::Object types
@@ -53,7 +53,7 @@ bool Extension::Initialize() {
   if (FAILED(hr)) return false;
 
   // Parent the model for the type
-  hr = spHostSymbols->CreateTypeSignature(L"v8::internal::Object", nullptr,
+  hr = spDebugHostSymbols->CreateTypeSignature(L"v8::internal::Object", nullptr,
                                           spObjectTypeSignature.put());
   if (FAILED(hr)) return false;
   hr = spDataModelManager->RegisterModelForTypeSignature(
@@ -67,10 +67,10 @@ bool Extension::Initialize() {
   if (FAILED(hr)) return false;
 
   // Create a type signature for the v8::Local symbol
-  hr = spHostSymbols->CreateTypeSignature(L"v8::Local<*>", nullptr,
+  hr = spDebugHostSymbols->CreateTypeSignature(L"v8::Local<*>", nullptr,
                                           spLocalTypeSignature.put());
   if (FAILED(hr)) return false;
-  hr = spHostSymbols->CreateTypeSignature(L"v8::MaybeLocal<*>", nullptr,
+  hr = spDebugHostSymbols->CreateTypeSignature(L"v8::MaybeLocal<*>", nullptr,
                                           spMaybeLocalTypeSignature.put());
   if (FAILED(hr)) return false;
 

@@ -9,8 +9,8 @@ class Extension {
   ~Extension();
   static Extension* currentExtension;
 
-  winrt::com_ptr<IDebugHostMemory2> spDebugMemory;
-  winrt::com_ptr<IDebugHostSymbols> spHostSymbols;
+  winrt::com_ptr<IDebugHostMemory2> spDebugHostMemory;
+  winrt::com_ptr<IDebugHostSymbols> spDebugHostSymbols;
   winrt::com_ptr<IDebugHostExtensibility> spDebugHostExtensibility;
 
   winrt::com_ptr<IDebugHostTypeSignature> spObjectTypeSignature;
