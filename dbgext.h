@@ -1,8 +1,8 @@
 #pragma once
 
-#define _UNICODE
-#define UNICODE
-#define WIN32_LEAN_AND_MEAN
+#if !defined(UNICODE) || !defined(_UNICODE)
+#error Unicode not defined
+#endif
 
 #include <crtdbg.h>
 #include <Windows.h>
