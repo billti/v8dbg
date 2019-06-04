@@ -174,8 +174,11 @@ void DoWork() {
 
   ULONG64 extHandle;
   hr = pDebugControl->AddExtension("C:\\src\\github\\dbgext\\x64\\dbgext.dll", 0, &extHandle);
-  //hr = pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "dx @$curisolate()", DEBUG_EXECUTE_ECHO);
-  hr = pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "k", DEBUG_EXECUTE_ECHO);
+  // HACK: Below fails, but is required for the extension to actually initialize.
+  // Just the AddExtension call doesn't actually load and initialize it.
+  pDebugControl->CallExtension(extHandle, "Foo", "Bar");
+  hr = pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "dx @$curisolate()", DEBUG_EXECUTE_ECHO);
+  // hr = pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "k", DEBUG_EXECUTE_ECHO);
 
 	// Detach before exiting
 	hr = pClient->DetachProcesses();

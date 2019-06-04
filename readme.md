@@ -17,6 +17,19 @@ there also.
 
 The resulting `dbgext.dll` and symbols should be generated in the build directory.
 
+## Testing
+
+Use the `runtests.bat` script in the root directory (after building) to run the
+console app the exercises the extension. Launch with `runtests.bat dbg` to run
+the test executable in the debugger.
+
+As the version of dbgeng.dll that comes with Windows is a system DLL it is found
+first, but the system version does not allow loading of extensions. Thus the
+script has to copy the extension and test executable to the WinDbgx version to
+load the correct dbgeng.dll and dbgmodel.dll files.
+
+The path to WinDbgx in the first line of `runtests.bat` may need updating.
+
 ### Release builds
 
 The above will create a debug build by default. To build a release build, create
