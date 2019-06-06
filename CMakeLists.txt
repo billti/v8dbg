@@ -1,6 +1,11 @@
 cmake_minimum_required (VERSION 3.10)
 project(dbgext)
 
+# C++17 is required for some of the header files
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set the preprocessor definitions for Unicode
 add_definitions(-DUNICODE -D_UNICODE -DWIN32_LEAN_AND_MEAN)
 
 # Configure the debug extension with the minimal sources needed
@@ -16,7 +21,3 @@ add_executable(testcons "test/main.cpp" "test/common.h")
 # DbgEng and DbgModel are needed for Debugger extensions. RuntimeObject for COM.
 target_link_libraries(dbgext DbgEng DbgModel RuntimeObject)
 target_link_libraries(testcons DbgEng DbgModel RuntimeObject)
-
-# C++17 is required for some of the header files
-set_property(TARGET dbgext PROPERTY CXX_STANDARD 17)
-set_property(TARGET testcons PROPERTY CXX_STANDARD 17)

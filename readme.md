@@ -35,7 +35,7 @@ The path to WinDbgx in the first line of `runtests.bat` may need updating.
 The above will create a debug build by default. To build a release build, create
 a release directory to use and change the CMake command to:
 
-`cmake -G Ninja -D CMAKE_BUILD_TYPE=RelWithDebInfo ../`
+`cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ../`
 
 ## Debugging the extension
 
