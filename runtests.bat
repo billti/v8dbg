@@ -7,15 +7,15 @@ IF NOT EXIST "%DBGDIR%\dbgeng.dll" (
   EXIT /B 1
 )
 
-IF NOT EXIST "%BINDIR%\testcons.exe" (
-  ECHO Debugger extension 'dbgext.dll' not found. Please build first.
+IF NOT EXIST "%BINDIR%\v8dbg.dll" (
+  ECHO Debugger extension 'v8dbg.dll' not found. Please build first.
   EXIT /B 1
 )
 
-ROBOCOPY "%BINDIR%" "%DBGDIR%" dbgext.dll dbgext.pdb testcons.exe testcons.pdb > NUL
+ROBOCOPY "%BINDIR%" "%DBGDIR%" v8dbg.dll v8dbg.pdb v8dbg-test.exe v8dbg-test.pdb > NUL
 
 IF /I "%1" == "dbg" (
-  windbgx "%DBGDIR%\testcons.exe"
+  windbgx "%DBGDIR%\v8dbg-test.exe"
 ) ELSE (
-  "%DBGDIR%\testcons.exe"
+  "%DBGDIR%\v8dbg-test.exe"
 )

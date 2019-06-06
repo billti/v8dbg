@@ -6,11 +6,10 @@
 // See the docs at
 // https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/using-the-debugger-engine-api
 
-const char* DbgExt = "C:\\src\\github\\dbgext\\x64\\dbgext.dll";
+const char* v8dbg = "C:\\src\\github\\v8dbg\\x64\\v8dbg.dll";
 const char* SymbolPath = "C:\\src\\github\\v8\\out\\x64.debug";
 const char* CommandLine =
-    "C:\\src\\github\\v8\\out\\x64.debug\\d8.exe -e \"console.log('hello, "
-    "world');\"";
+    "C:\\src\\github\\v8\\out\\x64.debug\\d8.exe -e \"console.log('done');\"";
 
 void RunTests() {
   // Get the Debug client
@@ -85,7 +84,7 @@ void RunTests() {
   winrt::check_hresult(hr);
 
   ULONG64 extHandle;
-  hr = pDebugControl->AddExtension(DbgExt, 0, &extHandle);
+  hr = pDebugControl->AddExtension(v8dbg, 0, &extHandle);
   // HACK: Below fails, but is required for the extension to actually
   // initialize. Just the AddExtension call doesn't actually load and initialize
   // it.

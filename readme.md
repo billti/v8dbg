@@ -1,34 +1,35 @@
-# DbgExt
-This project shows a basic example of a debugger extension. It uses the DataModel
-as much as possible (see [DataModel Manager]) via the native interfaces using the
+# v8dbg
+This project is a WinDbg extension for the V8 engine. It uses the DataModel as
+much as possible (see [DataModel Manager]) via the native interfaces using the
 [C++/WinRT COM] APIs.
 
-The source in the root directory is a generic starting point for implementation.
-The custom code should implement the two methods declared near the top of
-`dbgext.h` to initialize and clean-up, and make use of the two globals declared
-there also.
+The source in the root directory is a generic starting point for implementing a
+WinDbg extension. The V8-specific implementation (under `./src`) then implements
+the two methods declared near the top of `dbgext.h` to create and destroy the
+extension instance.
 
 ## Building
 
 1. Open a `Native x64 Developer Tools` command prompt installed by VS 2019.
 2. Create a `.\x64` directory under the project and CD into it.
 3. To create the build files run: `cmake -G Ninja ../`
-4. To build, in the same directory run: `ninja` (or, from the root directory, run `cmake --build ./x64`).
+4. To build, in the same directory run: `ninja` (or, from the root directory,
+   run `cmake --build ./x64`).
 
-The resulting `dbgext.dll` and symbols should be generated in the build directory.
+The resulting `v8dbg.dll` and symbols should be generated in the build directory.
 
 ## Testing
 
 Use the `runtests.bat` script in the root directory (after building) to run the
-console app the exercises the extension. Launch with `runtests.bat dbg` to run
-the test executable in the debugger.
+console app that exercises the extension. Launch with `runtests.bat dbg` to run
+the test executable in an instance of WinDbgx.
 
-As the version of dbgeng.dll that comes with Windows is a system DLL it is found
-first, but the system version does not allow loading of extensions. Thus the
-script has to copy the extension and test executable to the WinDbgx version to
-load the correct dbgeng.dll and dbgmodel.dll files.
+As the version of dbgeng.dll that comes with Windows is a system DLL, it is
+found first by default, but the system version does not allow loading of extensions.
+Thus the script has to copy the extension and test executable to the WinDbgx
+location to load the correct dbgeng.dll and dbgmodel.dll files.
 
-The path to WinDbgx in the first line of `runtests.bat` may need updating.
+The local path to WinDbgx in the first line of `runtests.bat` may need updating.
 
 ### Release builds
 
@@ -48,38 +49,30 @@ or
 `windbgx \src\github\v8\out\x64.debug\d8.exe c:\temp\test.js`
 
 The WinDbgx process itself does not host the extensions, but a helper process.
-Attach another instance of WinDbgx to the enghost.exe helper process, e.g.
+Attach another instance of WinDbgx to the `enghost.exe` helper process, e.g.
 
 `windbgx -pn enghost.exe`
 
-Set a breakpoint in the session for when the extension initializes, e.g.
+Set a breakpoint in this second session for when the extension initializes, e.g.
 
-`bm dbgext!DebugExtensionInitialize`
+`bm v8dbg!DebugExtensionInitialize`
 
-..and/or whenever it populates the V8 Object `Contents` property, e.g.
+..and/or whenever a function of interest is invoked, e.g.
 
-```text
-bp dbgext!CurrIsolateAlias::Call
-bm dbgext!V9ObjectDataModel::EnumerateKeys
-bm dbgext!V8ObjectDataModel::InitializeObject
-bp dbgext!V8ObjectDataModel::GetCachedObject
-bp dbgext!GetHeapObject
-bp dbgext!V8CachedObject::V8CachedObject
-bp dbgext!V8ObjectDataModel::GetKey
-```
+ - `bp v8dbg!CurrIsolateAlias::Call` for the invocation of `@$curisolate()`
+ - `bp v8dbg!GetHeapObject` for the interpretation of V8 objects.
 
-Load the extension in the target debugger (the first WinDbg session), which should trigger the breakpoint.
+Load the extension in the target debugger (the first WinDbg session), which
+should trigger the breakpoint.
 
-`.load "C:\\src\\github\\dbgext\\x64\\dbgext.dll"`
+`.load "C:\\src\\github\\v8dbg\\x64\\v8dbg.dll"`
 
-Note: For D8, `d8_exe!v8::Shell::RunMain` or `ExecuteString` is a good breakpoint to set.
+Note: For D8, the below is a good breakpoint to set just before any script is run:
 
 `bp d8_exe!v8::Shell::ExecuteString`
 
-Then trigger the `v8::internal::Object` model code via something like:
-
-`dx (d8_exe!v8::internal::Object*)source.val_`
-`dx (v8::internal::Object*) (*(uint64_t*)source.val_ - 1)`
+Then trigger the extension code of interest via something like `dx source` or
+`dx @$curisolate()`.
 
 [DataModel Manager]: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/data-model-cpp-overview
 [C++/WinRT COM]: https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/consume-com
