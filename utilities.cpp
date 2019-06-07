@@ -40,6 +40,19 @@ HRESULT CreateInt32(int value, IModelObject** ppInt) {
   return hr;
 }
 
+HRESULT CreateUInt32(uint32_t value, IModelObject** ppInt) {
+  HRESULT hr = S_OK;
+  *ppInt = nullptr;
+
+  VARIANT vtVal;
+  vtVal.vt = VT_UI4;
+  vtVal.uintVal = value;
+
+  hr =
+      spDataModelManager->CreateIntrinsicObject(ObjectIntrinsic, &vtVal, ppInt);
+  return hr;
+}
+
 HRESULT CreateBool(bool value, IModelObject** ppVal) {
   HRESULT hr = S_OK;
   *ppVal = nullptr;

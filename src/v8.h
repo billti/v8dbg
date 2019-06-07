@@ -12,6 +12,7 @@ inline uint64_t UnTagPtr(uint64_t ptr) { return ptr &= ~0x03ull; }
 
 enum class PropertyType {
   Smi,
+  UInt,
   Number,
   String,
   Bool,
@@ -36,6 +37,7 @@ struct Property {
 
   union {
     int smiValue;
+    uint32_t uintValue;
     double numValue;
     bool boolValue;
     uint64_t addrValue;

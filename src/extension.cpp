@@ -130,6 +130,12 @@ bool Extension::Initialize() {
   hr = spDebugHostSymbols->CreateTypeSignature(L"v8::MaybeLocal<*>", nullptr,
                                           spMaybeLocalTypeSignature.put());
   if (FAILED(hr)) return false;
+  hr = spDebugHostSymbols->CreateTypeSignature(L"v8::internal::Handle<*>", nullptr,
+                                          spHandleTypeSignature.put());
+  if (FAILED(hr)) return false;
+  hr = spDebugHostSymbols->CreateTypeSignature(L"v8::internal::MaybeHandle<*>", nullptr,
+                                          spMaybeHandleTypeSignature.put());
+  if (FAILED(hr)) return false;
 
   // Add the 'Value' property to the parent model.
   auto localValueProperty{winrt::make<V8LocalValueProperty>()};
@@ -143,6 +149,10 @@ bool Extension::Initialize() {
       spLocalTypeSignature.get(), spLocalDataModel.get());
   hr = spDataModelManager->RegisterModelForTypeSignature(
       spMaybeLocalTypeSignature.get(), spLocalDataModel.get());
+  hr = spDataModelManager->RegisterModelForTypeSignature(
+      spHandleTypeSignature.get(), spLocalDataModel.get());
+  hr = spDataModelManager->RegisterModelForTypeSignature(
+      spMaybeHandleTypeSignature.get(), spLocalDataModel.get());
 
   // Register the @$currisolate function alias.
   auto currIsolateFunction{winrt::make<CurrIsolateAlias>()};
@@ -170,4 +180,8 @@ Extension::~Extension() {
       spLocalDataModel.get(), spLocalTypeSignature.get());
   spDataModelManager->UnregisterModelForTypeSignature(
       spLocalDataModel.get(), spMaybeLocalTypeSignature.get());
+  spDataModelManager->UnregisterModelForTypeSignature(
+      spLocalDataModel.get(), spHandleTypeSignature.get());
+  spDataModelManager->UnregisterModelForTypeSignature(
+      spLocalDataModel.get(), spMaybeHandleTypeSignature.get());
 }

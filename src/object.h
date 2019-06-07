@@ -142,7 +142,8 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
       V8HeapObject* pV8HeapObject;
       HRESULT hr = spV8CachedObject->GetCachedV8HeapObject(&pV8HeapObject);
       if (pV8HeapObject && pV8HeapObject->FriendlyName.size() > 0) {
-        *displayString = ::SysAllocString(reinterpret_cast<wchar_t*>(pV8HeapObject->FriendlyName.data()));
+        auto truncName = pV8HeapObject->FriendlyName.substr(0, 50);
+        *displayString = ::SysAllocString(reinterpret_cast<wchar_t*>(truncName.data()));
       } else {
         *displayString = ::SysAllocString(L"<V8 Object>");
       }
@@ -183,6 +184,10 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
                 break;
               case PropertyType::String:
                 CreateString(k.strValue, spValue.put());
+                *keyValue = spValue.detach();
+                break;
+              case PropertyType::UInt:
+                CreateUInt32(k.uintValue, spValue.put());
                 *keyValue = spValue.detach();
                 break;
               case PropertyType::Bool:

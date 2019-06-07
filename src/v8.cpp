@@ -88,6 +88,31 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t taggedPtr) {
         int32_t value;
         ReadTypeFromMemory(memReader, valueAddr, &value);
         obj.Properties.push_back(Property{prop.name, value});
+      } else if (prop.type == V8::Layout::FieldType::kUInt8Size) {
+        // Read the value at the address
+        uint64_t valueAddr = obj.HeapAddress + prop.offset;
+        uint8_t value;
+        ReadTypeFromMemory(memReader, valueAddr, &value);
+        obj.Properties.push_back(Property{prop.name, value});
+      } else if (prop.type == V8::Layout::FieldType::kUInt16Size) {
+        // Read the value at the address
+        uint64_t valueAddr = obj.HeapAddress + prop.offset;
+        uint16_t value;
+        ReadTypeFromMemory(memReader, valueAddr, &value);
+        obj.Properties.push_back(Property{prop.name, value});
+      } else if (prop.type == V8::Layout::FieldType::kUInt32Size) {
+        // Read the value at the address
+        uint64_t valueAddr = obj.HeapAddress + prop.offset;
+        Property theProp{prop.name, 0};
+        theProp.type = PropertyType::UInt;
+        ReadTypeFromMemory(memReader, valueAddr, &theProp.uintValue);
+        obj.Properties.push_back(theProp);
+      } else if (prop.type == V8::Layout::FieldType::kInt32Size) {
+        // Read the value at the address
+        uint64_t valueAddr = obj.HeapAddress + prop.offset;
+        int32_t value;
+        ReadTypeFromMemory(memReader, valueAddr, &value);
+        obj.Properties.push_back(Property{prop.name, value});
       } else {
         // TODO Other types
         _RPTF0(_CRT_WARN, "Data type not yet implemented");

@@ -19,6 +19,8 @@ class Extension {
   winrt::com_ptr<IDebugHostTypeSignature> spObjectTypeSignature;
   winrt::com_ptr<IDebugHostTypeSignature> spLocalTypeSignature;
   winrt::com_ptr<IDebugHostTypeSignature> spMaybeLocalTypeSignature;
+  winrt::com_ptr<IDebugHostTypeSignature> spHandleTypeSignature;
+  winrt::com_ptr<IDebugHostTypeSignature> spMaybeHandleTypeSignature;
   winrt::com_ptr<IModelObject> spObjectDataModel;
   winrt::com_ptr<IModelObject> spLocalDataModel;
   winrt::com_ptr<IModelObject> spCurrIsolateModel;

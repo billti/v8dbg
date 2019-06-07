@@ -38,6 +38,8 @@ HRESULT CreateULong64(ULONG64 value, IModelObject **ppInt);
 
 HRESULT CreateInt32(int value, IModelObject **ppInt);
 
+HRESULT CreateUInt32(uint32_t value, IModelObject** ppInt);
+
 HRESULT CreateBool(bool value, IModelObject **ppVal);
 
 HRESULT CreateNumber(double value, IModelObject **ppVal);

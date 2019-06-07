@@ -1,14 +1,13 @@
 # InstanceTypes to add
+ODDBALL_TYPE = 0n67
+SCOPE_INFO_TYPE = 0n132
 NATIVE_CONTEXT_TYPE = 0n141
 FEEDBACK_CELL_TYPE = 0n150
 CODE_TYPE = 0n69
-ODDBALL_TYPE = 0n67
 
-# Clean up existing functionality
  - Handle v8::internal::Handle<*> & v8::internal::MaybeHandle<*>
    - Handle is just an alias for Local and is deprecated.
  - Handle v8::Context and v8::Script
- - Use the dynamic property list, not the current hard-coded list
  - Try to handle JSObject and JSArray with an enumerator
  - Abstract away Address manipulation to handle pointer compression
  - Handle memory read failures
