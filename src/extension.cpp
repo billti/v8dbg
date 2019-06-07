@@ -32,6 +32,63 @@ void DestroyExtension() {
   return;
 }
 
+winrt::com_ptr<IDebugHostType> Extension::GetV8ObjectType(winrt::com_ptr<IDebugHostContext>& spCtx) {
+  if (spV8ObjectType != nullptr) {
+    bool isEqual;
+    if (SUCCEEDED(spV8ModuleCtx->IsEqualTo(spCtx.get(), &isEqual)) && isEqual) {
+      return spV8ObjectType;
+    } else {
+      spV8ObjectType = nullptr;
+    }
+  }
+
+  GetV8Module(spCtx); // Will force the correct module to load
+  if (spV8Module == nullptr) return spV8ObjectType; // Will also be null here
+
+  HRESULT hr = spV8Module->FindTypeByName(L"v8::internal::Object", spV8ObjectType.put());
+  return spV8ObjectType;
+}
+
+winrt::com_ptr<IDebugHostModule> Extension::GetV8Module(winrt::com_ptr<IDebugHostContext>& spCtx) {
+  // Return the cached version if it exists and the context is the same
+  if (spV8Module != nullptr) {
+    bool isEqual;
+    if (SUCCEEDED(spV8ModuleCtx->IsEqualTo(spCtx.get(), &isEqual)) && isEqual) {
+      return spV8Module;
+    } else {
+      spV8Module = nullptr;
+      spV8ModuleCtx = nullptr;
+    }
+  }
+
+  // Loop through the modules looking for the one that holds the "isolate_key_"
+  winrt::com_ptr<IDebugHostSymbolEnumerator> spEnum;
+  if (SUCCEEDED(spDebugHostSymbols->EnumerateModules(spCtx.get(), spEnum.put()))) {
+    HRESULT hr = S_OK;
+    while (true) {
+      winrt::com_ptr<IDebugHostSymbol> spModSym;
+      hr = spEnum->GetNext(spModSym.put());
+      // hr == E_BOUNDS : hit the end of the enumerator
+      // hr == E_ABORT  : a user interrupt was requested
+      if (FAILED(hr)) break;
+      winrt::com_ptr<IDebugHostModule> spModule;
+      if (spModSym.try_as(spModule)) /* should always succeed */
+      {
+        winrt::com_ptr<IDebugHostSymbol> spIsolateSym;
+        // The below symbol is specific to the main V8 module
+        hr = spModule->FindSymbolByName(L"isolate_key_", spIsolateSym.put());
+        if (SUCCEEDED(hr)) {
+          spV8Module = spModule;
+          spV8ModuleCtx = spCtx;
+          break;
+        }
+      }
+    }
+  }
+  // This will be the located module, or still nullptr if above fails
+  return spV8Module;
+}
+
 bool Extension::Initialize() {
   _RPTF0(_CRT_WARN, "Entered ExtensionInitialize\n");
 

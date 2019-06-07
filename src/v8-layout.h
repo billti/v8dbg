@@ -86,6 +86,25 @@ class V8Layout {
     };
     ObjectDesc ConsString = {u"v8::internal::ConsString", String.name, ConsString_Fields, 32};
 
+    FieldVector Script_Fields = {
+      {u"Source", FieldType::kTaggedSize, 8},
+      {u"Name", FieldType::kTaggedSize, 16},
+      {u"LineOffset", FieldType::kTaggedSize, 24},
+      {u"ColumnOffset", FieldType::kTaggedSize, 32},
+      {u"Context", FieldType::kTaggedSize, 40},
+      {u"ScriptType", FieldType::kTaggedSize, 48},
+      {u"LineEnds", FieldType::kTaggedSize, 56},
+      {u"Id", FieldType::kTaggedSize, 64},
+      {u"EvalFromSharedOrWrappedArguments", FieldType::kTaggedSize, 72},
+      {u"EvalFromPosition", FieldType::kTaggedSize, 80},
+      {u"SharedFunctionInfos", FieldType::kTaggedSize, 88},
+      {u"Flags", FieldType::kTaggedSize, 96},
+      {u"SourceUrl", FieldType::kTaggedSize, 104},
+      {u"SourceMappingUrl", FieldType::kTaggedSize, 112},
+      {u"HostDefinedOptions", FieldType::kTaggedSize, 120},
+    };
+    ObjectDesc Script = {u"v8::internal::Script", HeapObject.name, Script_Fields, 128};
+
     FieldVector SharedFunctionInfo_Fields = {
       {u"FunctionData", FieldType::kTaggedSize, 8},
       {u"NameOrScopeInfo", FieldType::kTaggedSize, 16},
@@ -100,6 +119,31 @@ class V8Layout {
     };
     ObjectDesc SharedFunctionInfo = {u"v8::internal::SharedFunctionInfo", HeapObject.name, SharedFunctionInfo_Fields, 56};
 
+    FieldVector JSReceiver_Fields = {
+      {u"PropertiesOrHash", FieldType::kTaggedSize, 8},
+    };
+    ObjectDesc JSReceiver = {u"v8::internal::JSReceiver", HeapObject.name, JSReceiver_Fields, 16};
+
+    FieldVector JSObject_Fields = {
+      {u"Elements", FieldType::kTaggedSize, 16},
+    };
+    ObjectDesc JSObject = {u"v8::internal::JSObject", JSReceiver.name, JSObject_Fields, 24};
+
+    FieldVector JSFunction_Fields = {
+      {u"SharedFunctionInfo", FieldType::kTaggedSize, 24},
+      {u"Context", FieldType::kTaggedSize, 32},
+      {u"FeedbackCell", FieldType::kTaggedSize, 40},
+      {u"Code", FieldType::kTaggedSize, 48},
+      {u"PrototypeOrInitialMap", FieldType::kTaggedSize, 56},
+    };
+    ObjectDesc JSFunction = {u"v8::internal::JSFunction", JSObject.name, JSFunction_Fields, 64};
+
+    FieldVector FixedArrayBase_Fields = {
+      {u"Length", FieldType::kTaggedSize, 8},
+    };
+    ObjectDesc FixedArrayBase = {u"v8::internal::FixedArrayBase", HeapObject.name, FixedArrayBase_Fields, 16};
+    ObjectDesc FixedArray = {u"v8::internal::FixedArray", FixedArrayBase.name, No_Fields, 16};
+
     // Maps from instance type and class name to object descriptor
     TypeNameToDescriptor = {
       {HeapObject.name, HeapObject},
@@ -111,14 +155,27 @@ class V8Layout {
       {SeqTwoByteString.name, SeqTwoByteString},
       {ConsString.name, ConsString},
       {SharedFunctionInfo.name, SharedFunctionInfo},
+      {Script.name, Script},
+      {JSReceiver.name, JSReceiver},
+      {JSObject.name, JSObject},
+      {JSFunction.name, JSFunction},
+      {FixedArrayBase.name, FixedArrayBase},
+      {FixedArray.name, FixedArray},
       // Register internal types for public types
       {u"v8::String", String},
       // TODO...
     };
 
+// Note: You can get these from the PDB also ("dt v8!v8::internal::InstanceType")
     InstanceTypeToTypeName = {
+      {0x21, ConsString.name},
       {0x28, SeqOneByteString.name},
-      {0x55, Map.name},
+      {0x44, Map.name},
+      {0x62, Script.name},
+      {0x77, FixedArray.name},
+      {0x9C, SharedFunctionInfo.name},
+      {0x421, JSObject.name},
+      {0x451, JSFunction.name},
       // TODO...
     };
   }

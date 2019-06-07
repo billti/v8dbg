@@ -1,41 +1,26 @@
 #include "curisolate.h"
 
-int GetIsolateKey(IDebugHostContext* pCtx) {
-  auto spSym = Extension::currentExtension->spDebugHostSymbols;
+int GetIsolateKey(winrt::com_ptr<IDebugHostContext>& spCtx) {
 
-  // Loop through the modules looking for the one that holds the "isolate_key_"
-  winrt::com_ptr<IDebugHostSymbolEnumerator> spEnum;
-  if (SUCCEEDED(spSym->EnumerateModules(pCtx, spEnum.put()))) {
-    HRESULT hr = S_OK;
-    while (true) {
-      winrt::com_ptr<IDebugHostSymbol> spModSym;
-      hr = spEnum->GetNext(spModSym.put());
-      // hr == E_BOUNDS : hit the end of the enumerator
-      // hr == E_ABORT  : a user interrupt was requested
-      if (FAILED(hr)) break;
-      winrt::com_ptr<IDebugHostModule> spModule;
-      if (spModSym.try_as(spModule)) /* should always succeed */
-      {
-        winrt::com_ptr<IDebugHostSymbol> spIsolateSym;
-        hr = spModule->FindSymbolByName(L"isolate_key_", spIsolateSym.put());
+  auto spV8Module = Extension::currentExtension->GetV8Module(spCtx);
+  if (spV8Module == nullptr) return -1;
+
+  winrt::com_ptr<IDebugHostSymbol> spIsolateSym;
+  HRESULT hr = spV8Module->FindSymbolByName(L"isolate_key_", spIsolateSym.put());
+  if (SUCCEEDED(hr)) {
+    SymbolKind kind;
+    hr = spIsolateSym->GetSymbolKind(&kind);
+    if (SUCCEEDED(hr)) {
+      if (kind == SymbolData) {
+        winrt::com_ptr<IDebugHostData> spIsolateKeyData;
+        spIsolateSym.as(spIsolateKeyData);
+        Location loc;
+        hr = spIsolateKeyData->GetLocation(&loc);
         if (SUCCEEDED(hr)) {
-          Extension::currentExtension->spV8Module = spModule;
-          SymbolKind kind;
-          hr = spIsolateSym->GetSymbolKind(&kind);
-          if (SUCCEEDED(hr)) {
-            if (kind == SymbolData) {
-              winrt::com_ptr<IDebugHostData> spIsolateKeyData;
-              spIsolateSym.as(spIsolateKeyData);
-              Location loc;
-              hr = spIsolateKeyData->GetLocation(&loc);
-              if (SUCCEEDED(hr)) {
-                int isolate_key;
-                ULONG64 bytesRead;
-                hr = Extension::currentExtension->spDebugHostMemory->ReadBytes(pCtx, loc, &isolate_key, 4, &bytesRead);
-                return isolate_key;
-              }
-            }
-          }
+          int isolate_key;
+          ULONG64 bytesRead;
+          hr = Extension::currentExtension->spDebugHostMemory->ReadBytes(spCtx.get(), loc, &isolate_key, 4, &bytesRead);
+          return isolate_key;
         }
       }
     }
@@ -86,7 +71,7 @@ int GetIsolateKey(IDebugHostContext* pCtx) {
                                           spTlsSlots.put());
     if (FAILED(hr)) return E_FAIL;
 
-    int isolate_key = GetIsolateKey(spHostContext.get());
+    int isolate_key = GetIsolateKey(spHostContext);
     hr = CreateInt32(isolate_key, spSlotIndex.put());
     if (isolate_key == -1 || FAILED(hr)) return E_FAIL;
 
@@ -108,7 +93,7 @@ int GetIsolateKey(IDebugHostContext* pCtx) {
     // If we got the isolate_key OK, then must have the V8 module loaded
     // Get the internal Isolate type from it
     winrt::com_ptr<IDebugHostType> spIsolateType, spIsolatePtrType;
-    hr = Extension::currentExtension->spV8Module->FindTypeByName(L"v8::internal::Isolate", spIsolateType.put());
+    hr = Extension::currentExtension->GetV8Module(spHostContext)->FindTypeByName(L"v8::internal::Isolate", spIsolateType.put());
     hr = spIsolateType->CreatePointerTo(PointerStandard, spIsolatePtrType.put());
 
     winrt::com_ptr<IModelObject> spResult;

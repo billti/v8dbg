@@ -1,23 +1,37 @@
+# InstanceTypes to add
+NATIVE_CONTEXT_TYPE = 0n141
+FEEDBACK_CELL_TYPE = 0n150
+CODE_TYPE = 0n69
+ODDBALL_TYPE = 0n67
+
 # Clean up existing functionality
- x Handle Local<*> and MaybeLocal<*>
- x Handle SMIs
  - Handle v8::internal::Handle<*> & v8::internal::MaybeHandle<*>
- x Set the DisplayString
+   - Handle is just an alias for Local and is deprecated.
+ - Handle v8::Context and v8::Script
  - Use the dynamic property list, not the current hard-coded list
  - Try to handle JSObject and JSArray with an enumerator
  - Abstract away Address manipulation to handle pointer compression
  - Handle memory read failures
- - Support Linq expressions on object collections
+ - Support Linq expressions on object collections (e.g. heap enumeration)
 
-# Thread isolate
-1. Add an parent on to Thread with a PropertyAccess for CurrentIsolate
-2. In the accessor see if the V8 field for current TLS slot is available.
-3. Try to retrieve the value in the slot.
-4. If above is successful, return that pointer cast to a v8::internal::isolate
-5. If not, return null.
-6. See if it could then enumerate the scripts/heap/functions/etc. from it.
+ V8::Context::Scope has one data member of Local<Context> context_;
+ v8::internal::Context is derived from HeapObject
+
+ #define TORQUE_GENERATED_CONTEXT_FIELDS(V) \
+V(kLengthOffset, kTaggedSize) \
+V(kScopeInfoOffset, kTaggedSize) \
+V(kPreviousOffset, kTaggedSize) \
+V(kExtensionOffset, kTaggedSize) \
+V(kNativeContextOffset, kTaggedSize) \
+
+Script:: methods are in objects.cc starting at line 4552, e.g.
+
+Note: Also has a script iterator for the isolate at object.cc@4800
+
+Script::Iterator::Iterator(Isolate* isolate)
+    : iterator_(isolate->heap()->script_list()) {}
 
 # Misc
-- Try to figure out the best way to model the object hierarchy.
-- Try to create an 'enumerable' type on the map to show the slots on an object.
+- Figure out the best way to model the object hierarchy.
+- Create an 'enumerable' type on the map to show the slots on an object.
 - Is it of use to show map transitions in some way?

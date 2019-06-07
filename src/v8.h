@@ -10,14 +10,13 @@ using MemReader = std::function<bool(uint64_t address, size_t size, uint8_t* buf
 
 inline uint64_t UnTagPtr(uint64_t ptr) { return ptr &= ~0x03ull; }
 
-inline std::u16string ConvertToU16String(std::string utf8String);
-
 enum class PropertyType {
   Smi,
   Number,
   String,
   Bool,
   Address,
+  TaggedPtr,
   JSObject,
   NativeObject
 };

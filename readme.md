@@ -18,6 +18,13 @@ extension instance.
 
 The resulting `v8dbg.dll` and symbols should be generated in the build directory.
 
+### Release builds
+
+The above will create a debug build by default. To build a release build, create
+a release directory to use and change the CMake command to:
+
+`cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ../`
+
 ## Testing
 
 Use the `runtests.bat` script in the root directory (after building) to run the
@@ -30,13 +37,6 @@ Thus the script has to copy the extension and test executable to the WinDbgx
 location to load the correct dbgeng.dll and dbgmodel.dll files.
 
 The local path to WinDbgx in the first line of `runtests.bat` may need updating.
-
-### Release builds
-
-The above will create a debug build by default. To build a release build, create
-a release directory to use and change the CMake command to:
-
-`cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ../`
 
 ## Debugging the extension
 
@@ -70,6 +70,10 @@ should trigger the breakpoint.
 Note: For D8, the below is a good breakpoint to set just before any script is run:
 
 `bp d8_exe!v8::Shell::ExecuteString`
+
+..or the below for once the V8 engine is entered (for component builds):
+
+`bp v8!v8::Script::Run`
 
 Then trigger the extension code of interest via something like `dx source` or
 `dx @$curisolate()`.

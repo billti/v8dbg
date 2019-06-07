@@ -164,6 +164,9 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
 
       *hasKey = false;
       for(auto &k: pV8HeapObject->Properties) {
+        winrt::com_ptr<IDebugHostType> spV8Object;
+        winrt::com_ptr<IDebugHostContext> spCtx;
+
         const char16_t *pKey = reinterpret_cast<const char16_t*>(key);
         if (k.name.compare(pKey) == 0) {
           *hasKey = true;
@@ -188,6 +191,16 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
                 break;
               case PropertyType::Number:
                 CreateNumber(k.numValue, spValue.put());
+                *keyValue = spValue.detach();
+                break;
+              case PropertyType::TaggedPtr:
+                hr = contextObject->GetContext(spCtx.put());
+                if (FAILED(hr)) return hr;
+                spV8Object = Extension::currentExtension->GetV8ObjectType(spCtx);
+                if (spV8Object == nullptr) return E_FAIL;
+
+                spDataModelManager->CreateTypedObject(spCtx.get(), Location{k.addrValue},
+                    spV8Object.get(), spValue.put());
                 *keyValue = spValue.detach();
                 break;
               // TODO: Other types (e.g. nested objects)

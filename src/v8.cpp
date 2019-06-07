@@ -1,26 +1,8 @@
+#include <Windows.h>
 #include <crtdbg.h>
 #include "extension.h"
 #include "v8.h"
-#include <Windows.h>
-
-#if defined(WIN32)
-inline std::u16string ConvertToU16String(std::string utf8String) {
-  int lenChars = ::MultiByteToWideChar(CP_UTF8, 0, utf8String.c_str(), -1, nullptr, 0);
-
-  char16_t *pBuff = static_cast<char16_t*>(malloc(lenChars * sizeof(char16_t)));
-
-  // On Windows wchar_t is the same a 16char_t
-  static_assert(sizeof(wchar_t) == sizeof(char16_t));
-  lenChars = ::MultiByteToWideChar(CP_UTF8, 0, utf8String.c_str(), -1,
-      reinterpret_cast<wchar_t*>(pBuff), lenChars);
-  std::u16string result{pBuff};
-  free(pBuff);
-
-  return result;
-}
-#else
-  #error String encoding conversion must be provided for the target platform.
-#endif
+#include "../utilities.h"
 
 V8HeapObject GetHeapObject(MemReader memReader, uint64_t taggedPtr) {
   // Read the value at the address, and see if it is a tagged pointer
@@ -58,10 +40,64 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t taggedPtr) {
 
   if (typeName == v8Layout.InstanceTypeToTypeName.end()) {
     // Couldn't find the type of object from the map. Not much else can be done.
+    auto instStr = std::to_wstring(obj.Map.InstanceType);
+    obj.FriendlyName = std::u16string{u"Unknown instanceType: "} + reinterpret_cast<char16_t*>(instStr.data());
     return obj;
   }
 
   obj.Map.TypeName = typeName->second;
+
+  // Construct the dynamic properties by looping through the classes (base
+  // first) and adding to the vector.
+  auto objectDesc = v8Layout.TypeNameToDescriptor.find(typeName->second);
+  if (objectDesc == v8Layout.TypeNameToDescriptor.end() ) {
+    obj.FriendlyName = typeName->second + u": NO DESCRIPTOR";
+    // TODO: Eventually assert here if the type can't be found?
+    _RPTFWN(_CRT_WARN, L"Couldn't find object descriptor for type %s", U16ToWChar(typeName->second));
+    return obj;
+  }
+
+  // Loop up the base types adding the properties starting from the base.
+  // Note: Need to use std::function and capture itself to call recursively.
+  std::function<void(std::u16string)> addProps = [&obj, &v8Layout, &addProps, &memReader](std::u16string& type){
+    // Try to find the descriptor for this type
+    auto typeToDesc = v8Layout.TypeNameToDescriptor.find(type);
+    if (typeToDesc == v8Layout.TypeNameToDescriptor.end() ) {
+      obj.FriendlyName = type + u": NO LAYOUT INFO";
+      // TODO: Eventually assert here if the type can't be found?
+      _RPTFWN(_CRT_WARN, L"Couldn't find object descriptor for type %s", U16ToWChar(type));
+      return;
+    }
+
+    // If it has a base-class, process that first
+    if (typeToDesc->second.baseType != u"") addProps(typeToDesc->second.baseType);
+
+    // Add the properties
+    V8::Layout::ObjectDesc& descriptor = typeToDesc->second;
+    for(auto& prop: descriptor.fields) {
+      if (prop.type == V8::Layout::FieldType::kTaggedSize) {
+        Property heapObject{prop.name, 0};
+        // This is the actual location in memory of the taggedPtr
+        uint64_t valueAddr = obj.HeapAddress + prop.offset;
+        heapObject.addrValue = valueAddr;
+        heapObject.type = PropertyType::TaggedPtr;
+        obj.Properties.push_back(heapObject);
+      } else if (prop.type == V8::Layout::FieldType::kInt32Size) {
+        // Read the value at the address
+        uint64_t valueAddr = obj.HeapAddress + prop.offset;
+        int32_t value;
+        ReadTypeFromMemory(memReader, valueAddr, &value);
+        obj.Properties.push_back(Property{prop.name, value});
+      } else {
+        // TODO Other types
+        _RPTF0(_CRT_WARN, "Data type not yet implemented");
+        obj.Properties.push_back(Property{prop.name, u"[Unknown type!]"});
+      }
+    }
+    obj.FriendlyName = u"<" + type + u">";
+  };
+
+  addProps(typeName->second);
 
   // TODO: Loop through the properties reading/populating the vector
   if (typeName->second.compare(u"v8::internal::SeqOneByteString") == 0) {

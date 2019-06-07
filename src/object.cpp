@@ -27,26 +27,18 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
   // the generic type if derived from v8::internal::Object.
   if (FAILED(hr)) return hr;
 
-  winrt::com_ptr<IDebugHostModule> spModule;
-  winrt::com_ptr<IDebugHostType> spV8ObjectType;
-
-  // TODO: It may be that the initial type and the V8 DLL are in different
-  // modules, e.g. v8::Local could be in d8.exe, whereas most V8 types are in
-  // v8.dll. Maybe just do a general search (not specific to a module)?
-  hr = spType->GetContainingModule(spModule.put());
-  hr = spModule->FindTypeByName(L"v8::internal::Object", spV8ObjectType.put());
+  winrt::com_ptr<IDebugHostContext> spCtx;
+  hr = pV8LocalInstance->GetContext(spCtx.put());
+  if (FAILED(hr)) return hr;
+  winrt::com_ptr<IDebugHostType> spV8ObjectType = Extension::currentExtension->GetV8ObjectType(spCtx);
 
   Location loc;
-  // Location is an internal representation, but can be read from OK.
   hr = pV8LocalInstance->GetLocation(&loc);
   if (FAILED(hr)) return hr;
 
   // Read the pointer at the Object location
-  winrt::com_ptr<IDebugHostContext> spContext;
   ULONG64 objAddress;
-  hr = pV8LocalInstance->GetContext(spContext.put());
-  if (FAILED(hr)) return hr;
-  hr = ext->spDebugHostMemory->ReadPointers(spContext.get(), loc, 1, &objAddress);
+  hr = ext->spDebugHostMemory->ReadPointers(spCtx.get(), loc, 1, &objAddress);
   if (FAILED(hr)) return hr;
 
   // If the val_ is a nullptr, then there is no value in the Local.
@@ -54,7 +46,7 @@ HRESULT V8LocalValueProperty::GetValue(PCWSTR pwszKey,
     hr = CreateString(std::u16string{u"<empty>"}, ppValue);
   } else {
     // Should be a v8::internal::Object at the address
-    hr = spDataModelManager->CreateTypedObject(spContext.get(), objAddress, spV8ObjectType.get(), ppValue);
+    hr = spDataModelManager->CreateTypedObject(spCtx.get(), objAddress, spV8ObjectType.get(), ppValue);
   }
 
   return hr;
