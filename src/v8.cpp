@@ -124,7 +124,6 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t taggedPtr) {
 
   addProps(typeName->second);
 
-  // TODO: Loop through the properties reading/populating the vector
   if (typeName->second.compare(u"v8::internal::SeqOneByteString") == 0) {
     int strLength;
     ReadTypeFromMemory(memReader, obj.HeapAddress + 12, &strLength);
@@ -136,10 +135,25 @@ V8HeapObject GetHeapObject(MemReader memReader, uint64_t taggedPtr) {
     memReader(strAddress, strLength, reinterpret_cast<uint8_t*>(strValueSingleByte.data()));
     std::u16string strValue = ConvertToU16String(strValueSingleByte);
 
-    obj.Properties.push_back(Property{u"Length", strLength});
     obj.Properties.push_back(Property{u"Value", strValue});
-
     obj.FriendlyName = std::u16string{u"<SeqOneByteString>: "} + strValue;
+  }
+
+  if (typeName->second.compare(u"v8::internal::Oddball") == 0) {
+    for(auto& prop: obj.Properties) {
+      if(prop.name.compare(u"Kind") == 0) {
+        // Kind is a tagged value, so stored as a Smi
+        _ASSERTE(prop.type == PropertyType::TaggedPtr);
+        uint64_t taggedVal;
+        ReadTypeFromMemory(memReader, prop.addrValue, &taggedVal);
+        int kind = UntagSmi(taggedVal);
+        auto kindName = v8Layout.OddballKindToName.find(kind);
+        if (kindName != v8Layout.OddballKindToName.end()) {
+          obj.FriendlyName = u"<Oddball>" + (*kindName).second;
+        }
+        break;
+      }
+    }
   }
 
   return obj;

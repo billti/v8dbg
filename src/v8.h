@@ -8,7 +8,9 @@
 
 using MemReader = std::function<bool(uint64_t address, size_t size, uint8_t* buffer)>;
 
+// TODO: Specific to x64 non-compressed pointers currently
 inline uint64_t UnTagPtr(uint64_t ptr) { return ptr &= ~0x03ull; }
+inline int UntagSmi(uint64_t smi) { return static_cast<int>(static_cast<intptr_t>(smi) >> 32); }
 
 enum class PropertyType {
   Smi,
@@ -18,8 +20,6 @@ enum class PropertyType {
   Bool,
   Address,
   TaggedPtr,
-  JSObject,
-  NativeObject
 };
 
 struct Property {

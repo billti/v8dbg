@@ -142,7 +142,8 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
       V8HeapObject* pV8HeapObject;
       HRESULT hr = spV8CachedObject->GetCachedV8HeapObject(&pV8HeapObject);
       if (pV8HeapObject && pV8HeapObject->FriendlyName.size() > 0) {
-        auto truncName = pV8HeapObject->FriendlyName.substr(0, 50);
+        auto truncName = pV8HeapObject->FriendlyName.substr(0, 42);
+        if (pV8HeapObject->FriendlyName.size() > 42) truncName += u"...";
         *displayString = ::SysAllocString(reinterpret_cast<wchar_t*>(truncName.data()));
       } else {
         *displayString = ::SysAllocString(L"<V8 Object>");
@@ -199,6 +200,8 @@ struct V8ObjectDataModel: winrt::implements<V8ObjectDataModel, IDataModelConcept
                 *keyValue = spValue.detach();
                 break;
               case PropertyType::TaggedPtr:
+                // TODO: If this is a tagged ptr, check it's not a Smi
+                // Ideally should be the ptr, not the memory address.
                 hr = contextObject->GetContext(spCtx.put());
                 if (FAILED(hr)) return hr;
                 spV8Object = Extension::currentExtension->GetV8ObjectType(spCtx);

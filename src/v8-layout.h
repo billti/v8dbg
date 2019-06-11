@@ -6,7 +6,15 @@
 #include <string>
 #include <vector>
 
+
 namespace V8::Layout {
+
+using byte = uint8_t;
+
+// TODO: Should this code call the debugger to use symbols for these offsets?
+const int kOff_isolate_to_isolate_data = 0;
+const int kOff_isolate_to_heap_ = 0x90e8;
+const int kOff_isolate_data_to_roots_ = 0x38;
 
 enum class FieldType: uint16_t {
   kTaggedSize,
@@ -35,6 +43,7 @@ class V8Layout {
  public:
   std::map<std::u16string, ObjectDesc> TypeNameToDescriptor;
   std::map<uint16_t, std::u16string> InstanceTypeToTypeName;
+  std::map<int, std::u16string> OddballKindToName;
 
   V8Layout::V8Layout() {
     // Generated list of object layouts
@@ -144,6 +153,17 @@ class V8Layout {
     ObjectDesc FixedArrayBase = {u"v8::internal::FixedArrayBase", HeapObject.name, FixedArrayBase_Fields, 16};
     ObjectDesc FixedArray = {u"v8::internal::FixedArray", FixedArrayBase.name, No_Fields, 16};
 
+
+    // Taken from class-defintions-tq.h for TorqueGeneratedOddball
+    FieldVector Oddball_Fields = {
+      {u"ToNumberRaw", FieldType::kTaggedSize, 8},
+      {u"ToString", FieldType::kTaggedSize, 16},
+      {u"ToNumber", FieldType::kTaggedSize, 24},
+      {u"TypeOf", FieldType::kTaggedSize, 32},
+      {u"Kind", FieldType::kTaggedSize, 40},
+    };
+    ObjectDesc Oddball = {u"v8::internal::Oddball", HeapObject.name, Oddball_Fields, 48};
+
     // Maps from instance type and class name to object descriptor
     TypeNameToDescriptor = {
       {HeapObject.name, HeapObject},
@@ -161,6 +181,7 @@ class V8Layout {
       {JSFunction.name, JSFunction},
       {FixedArrayBase.name, FixedArrayBase},
       {FixedArray.name, FixedArray},
+      {Oddball.name, Oddball},
       // Register internal types for public types
       {u"v8::String", String},
       // TODO...
@@ -170,6 +191,7 @@ class V8Layout {
     InstanceTypeToTypeName = {
       {0x21, ConsString.name},
       {0x28, SeqOneByteString.name},
+      {0x43, Oddball.name},
       {0x44, Map.name},
       {0x62, Script.name},
       {0x77, FixedArray.name},
@@ -177,6 +199,21 @@ class V8Layout {
       {0x421, JSObject.name},
       {0x451, JSFunction.name},
       // TODO...
+    };
+
+// Based on constants in oddball.h
+    OddballKindToName = {
+      {0, u"False"},
+      {1, u"True"},
+      {2, u"TheHole"},
+      {3, u"Null"},
+      {4, u"ArgumentsMarker"},
+      {5, u"Undefined"},
+      {6, u"Uninitialized"},
+      {7, u"Other"},
+      {8, u"Exception"},
+      {9, u"OptimizedOut"},
+      {10, u"StaleRegister"},
     };
   }
 };
