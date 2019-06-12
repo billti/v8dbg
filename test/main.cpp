@@ -9,7 +9,7 @@
 const char* v8dbg = "C:\\src\\github\\v8dbg\\x64\\v8dbg.dll";
 const char* SymbolPath = "C:\\src\\github\\v8\\out\\x64.debug";
 const char* CommandLine =
-    "C:\\src\\github\\v8\\out\\x64.debug\\d8.exe -e \"console.log('done');\"";
+    "C:\\src\\github\\v8\\out\\x64.debug\\d8.exe c:\\temp\\test.js";
 
 void RunTests() {
   // Get the Debug client
@@ -63,7 +63,7 @@ void RunTests() {
   hr = pDebugControl->AddBreakpoint(DEBUG_BREAKPOINT_CODE, DEBUG_ANY_ID,
                                     bp.put());
   winrt::check_hresult(hr);
-  hr = bp->SetOffsetExpression("d8_exe!v8::Shell::ExecuteString");
+  hr = bp->SetOffsetExpression("v8!v8::Script::Run");
   winrt::check_hresult(hr);
   hr = bp->AddFlags(DEBUG_BREAKPOINT_ENABLED);
   winrt::check_hresult(hr);
@@ -93,7 +93,7 @@ void RunTests() {
   // Step one line to ensure locals are available
   hr = pDebugControl->SetCodeLevel(DEBUG_LEVEL_SOURCE);
   hr =
-      pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "p", DEBUG_EXECUTE_ECHO);
+      pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "gu", DEBUG_EXECUTE_ECHO);
   hr = pDebugControl->WaitForEvent(0, INFINITE);
 
   // Do some actual testing
@@ -110,16 +110,26 @@ void RunTests() {
     printf("SUCCESS: Function alias @$curisolate\n");
   }
 
-  // Do some actual testing
   output.log.clear();
   hr = pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "dx name.Value",
                               DEBUG_EXECUTE_ECHO);
-  if (output.log.find("<SeqOneByteString>") == std::string::npos) {
+  if (output.log.find("<SeqOneByteString>: c:\\temp\\test.js") == std::string::npos) {
     printf(
-        "***ERROR***: 'dx name.value' did not return the expected local "
-        "representation");
+        "***ERROR***: 'dx name.Value' did not return the expected local "
+        "representation\n");
   } else {
     printf("SUCCESS: v8::Local<v8::Value> decoding\n");
+  }
+
+  output.log.clear();
+  hr = pDebugControl->Execute(DEBUG_OUTCTL_ALL_CLIENTS, "p;dx maybe_result.Value",
+                              DEBUG_EXECUTE_ECHO);
+  if (output.log.find("<Oddball>Null") == std::string::npos) {
+    printf(
+        "***ERROR***: 'dx maybe_result.Value' did not return the expected Oddball "
+        "representation\n");
+  } else {
+    printf("SUCCESS: Oddball support\n");
   }
 
   printf("=== Run completed! ===\n");
