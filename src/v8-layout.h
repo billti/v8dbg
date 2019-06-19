@@ -66,11 +66,11 @@ class V8Layout {
       {u"OptionalPadding", FieldType::kUInt32Size, 20},
       {u"Prototype", FieldType::kTaggedSize, 24},
       {u"ConstructorOrBackPointer", FieldType::kTaggedSize, 32},
-      {u"TransitionsOrPrototypeInfo", FieldType::kTaggedSize, 40},
-      {u"Descriptors", FieldType::kTaggedSize, 48},
-      {u"LayoutDescriptor", FieldType::kTaggedSize, 56},
-      {u"DependentCode", FieldType::kTaggedSize, 64},
-      {u"PrototypeValidityCell", FieldType::kTaggedSize, 72}
+      {u"InstanceDescriptors", FieldType::kTaggedSize, 40},
+      {u"LayoutDescriptor", FieldType::kTaggedSize, 48},
+      {u"DependentCode", FieldType::kTaggedSize, 56},
+      {u"PrototypeValidityCell", FieldType::kTaggedSize, 64},
+      {u"TransitionsOrPrototypeInfo", FieldType::kTaggedSize, 72},
     };
     ObjectDesc Map = {u"v8::internal::Map", HeapObject.name, Map_Fields, 80};
 
@@ -153,6 +153,14 @@ class V8Layout {
     ObjectDesc FixedArrayBase = {u"v8::internal::FixedArrayBase", HeapObject.name, FixedArrayBase_Fields, 16};
     ObjectDesc FixedArray = {u"v8::internal::FixedArray", FixedArrayBase.name, No_Fields, 16};
 
+    FieldVector DescriptorArray_Fields = {
+      {u"NumberOfAllDescriptors", FieldType::kUInt16Size, 8},
+      {u"NumberOfDescriptors", FieldType::kUInt16Size, 10},
+      {u"RawNumberOfMarkedDescriptors", FieldType::kUInt16Size, 12},
+      {u"Filler16Bits", FieldType::kUInt16Size, 14},
+      {u"EnumCache", FieldType::kTaggedSize, 16},
+    };
+    ObjectDesc DescriptorArray = {u"v8::internal::DescriptorArray", HeapObject.name, DescriptorArray_Fields, 24};
 
     // Taken from class-defintions-tq.h for TorqueGeneratedOddball
     FieldVector Oddball_Fields = {
@@ -163,6 +171,8 @@ class V8Layout {
       {u"Kind", FieldType::kTaggedSize, 40},
     };
     ObjectDesc Oddball = {u"v8::internal::Oddball", HeapObject.name, Oddball_Fields, 48};
+
+
 
     // Maps from instance type and class name to object descriptor
     TypeNameToDescriptor = {
@@ -182,6 +192,7 @@ class V8Layout {
       {FixedArrayBase.name, FixedArrayBase},
       {FixedArray.name, FixedArray},
       {Oddball.name, Oddball},
+      {DescriptorArray.name, DescriptorArray},
       // Register internal types for public types
       {u"v8::String", String},
       // TODO...
@@ -193,9 +204,10 @@ class V8Layout {
       {0x28, SeqOneByteString.name},
       {0x43, Oddball.name},
       {0x44, Map.name},
-      {0x62, Script.name},
-      {0x77, FixedArray.name},
-      {0x9C, SharedFunctionInfo.name},
+      {0x60, Script.name},
+      {0x76, FixedArray.name},
+      {0x94, DescriptorArray.name},
+      {0x9b, SharedFunctionInfo.name},
       {0x421, JSObject.name},
       {0x451, JSFunction.name},
       // TODO...
