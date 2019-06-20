@@ -1,5 +1,6 @@
 #include "list-chunks.h"
 
+// v8dbg!ListChunksAlias::Call
 HRESULT __stdcall ListChunksAlias::Call(IModelObject* pContextObject,
                                         ULONG64 argCount,
                                         _In_reads_(argCount)
@@ -7,6 +8,22 @@ HRESULT __stdcall ListChunksAlias::Call(IModelObject* pContextObject,
                                         IModelObject** ppResult,
                                         IKeyStore** ppMetadata) noexcept {
   HRESULT hr = S_OK;
+
+  winrt::com_ptr<IDebugHostContext> spCtx;
+  hr = spDebugHost->GetCurrentContext(spCtx.put());
+  if (FAILED(hr)) return hr;
+
+  hr = spDataModelManager->CreateSyntheticObject(spCtx.get(), ppResult);
+  if (FAILED(hr)) return hr;
+
+  auto spIterator{winrt::make<MemoryChunks>()};
+  auto spIndexableConcept = spIterator.as<IIndexableConcept>();
+  auto spIterableConcept = spIterator.as<IIterableConcept>();
+  hr = (*ppResult)->SetConcept(__uuidof(IIndexableConcept), spIndexableConcept.get(), nullptr);
+  if (FAILED(hr)) return hr;
+  hr = (*ppResult)->SetConcept(__uuidof(IIterableConcept), spIterableConcept.get(), nullptr);
+  if (FAILED(hr)) return hr;
+
   // TODO
   // Get @$curisolate().heap_.space_ of type [Type: v8::internal::Space * [8]]
 
@@ -23,6 +40,5 @@ HRESULT __stdcall ListChunksAlias::Call(IModelObject* pContextObject,
   // For each memory chunk list...
   // TODO: What representation? A custom/synthesized type with start/end, and pointer back to Space/MemoryChunk?
 
-  hr = CreateInt32(42, ppResult);
   return hr;
 }
