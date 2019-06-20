@@ -1,10 +1,12 @@
 #include "../utilities.h"
 #include "extension.h"
 #include "curisolate.h"
+#include "list-chunks.h"
 #include "object.h"
 
 Extension* Extension::currentExtension = nullptr;
 const wchar_t *pcurIsolate = L"curisolate";
+const wchar_t *plistChunks = L"listchunks";
 
 bool CreateExtension() {
   _RPTF0(_CRT_WARN, "Entered CreateExtension\n");
@@ -51,6 +53,11 @@ winrt::com_ptr<IDebugHostType> Extension::GetV8ObjectType(winrt::com_ptr<IDebugH
 
 winrt::com_ptr<IDebugHostModule> Extension::GetV8Module(winrt::com_ptr<IDebugHostContext>& spCtx) {
   // Return the cached version if it exists and the context is the same
+
+  // Note: Context will often have the CUSTOM flag set, which never compares equal.
+  // So for now DON'T compare by context, but by procId. (An API is in progress
+  // to compare by address space, which should be usable when shipped).
+  /*
   if (spV8Module != nullptr) {
     bool isEqual;
     if (SUCCEEDED(spV8ModuleCtx->IsEqualTo(spCtx.get(), &isEqual)) && isEqual) {
@@ -58,6 +65,15 @@ winrt::com_ptr<IDebugHostModule> Extension::GetV8Module(winrt::com_ptr<IDebugHos
     } else {
       spV8Module = nullptr;
       spV8ModuleCtx = nullptr;
+    }
+  }
+  */
+  winrt::com_ptr<IDebugSystemObjects> spSysObjects;
+  ULONG procId = 0;
+  if (spDebugControl.try_as(spSysObjects))
+  {
+    if(SUCCEEDED(spSysObjects->GetCurrentProcessSystemId(&procId))) {
+      if (procId == v8ModuleProcId && spV8Module != nullptr) return spV8Module;
     }
   }
 
@@ -80,6 +96,14 @@ winrt::com_ptr<IDebugHostModule> Extension::GetV8Module(winrt::com_ptr<IDebugHos
         if (SUCCEEDED(hr)) {
           spV8Module = spModule;
           spV8ModuleCtx = spCtx;
+          v8ModuleProcId = procId;
+          // Output location
+          BSTR moduleName;
+          if(SUCCEEDED(spModule->GetImageName(true, &moduleName))) {
+            _RPTW1(_CRT_WARN, L"V8 symbols loaded from %s\n", moduleName);
+            spDebugControl->Output(DEBUG_OUTPUT_NORMAL, "V8 symbols loaded from %S\n", moduleName);
+            ::SysFreeString(moduleName);
+          }
           break;
         }
       }
@@ -167,12 +191,26 @@ bool Extension::Initialize() {
   hr = spDebugHostExtensibility->CreateFunctionAlias(pcurIsolate,
                                                      spCurrIsolateModel.get());
 
+  // Register the @$listchunks function alias.
+  auto listChunksFunction{winrt::make<ListChunksAlias>()};
+
+  VARIANT vtListChunksFunction;
+  vtListChunksFunction.vt = VT_UNKNOWN;
+  vtListChunksFunction.punkVal =
+      static_cast<IModelMethod*>(listChunksFunction.get());
+
+  hr = spDataModelManager->CreateIntrinsicObject(
+      ObjectMethod, &vtListChunksFunction, spListChunksModel.put());
+  hr = spDebugHostExtensibility->CreateFunctionAlias(plistChunks,
+                                                     spListChunksModel.get());
+
   return !FAILED(hr);
 }
 
 Extension::~Extension() {
   _RPTF0(_CRT_WARN, "Entered Extension::~Extension\n");
   spDebugHostExtensibility->DestroyFunctionAlias(pcurIsolate);
+  spDebugHostExtensibility->DestroyFunctionAlias(plistChunks);
 
   spDataModelManager->UnregisterModelForTypeSignature(
       spObjectDataModel.get(), spObjectTypeSignature.get());

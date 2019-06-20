@@ -7,6 +7,7 @@ _CrtMemState memOld, memNew, memDiff;
 
 winrt::com_ptr<IDataModelManager> spDataModelManager;
 winrt::com_ptr<IDebugHost> spDebugHost;
+winrt::com_ptr<IDebugControl5> spDebugControl;
 
 extern "C" {
 
@@ -23,6 +24,7 @@ __declspec(dllexport) HRESULT
   if (FAILED(hr)) return E_FAIL;
 
   if (!spDebugClient.try_as(spDataModelAccess)) return E_FAIL;
+  if (!spDebugClient.try_as(spDebugControl)) return E_FAIL;
 
   hr = spDataModelAccess->GetDataModel(spDataModelManager.put(),
                                        spDebugHost.put());

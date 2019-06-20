@@ -24,9 +24,11 @@ class Extension {
   winrt::com_ptr<IModelObject> spObjectDataModel;
   winrt::com_ptr<IModelObject> spLocalDataModel;
   winrt::com_ptr<IModelObject> spCurrIsolateModel;
+  winrt::com_ptr<IModelObject> spListChunksModel;
 
  private:
   winrt::com_ptr<IDebugHostModule> spV8Module;
   winrt::com_ptr<IDebugHostType> spV8ObjectType;
   winrt::com_ptr<IDebugHostContext> spV8ModuleCtx;
+  ULONG v8ModuleProcId;
 };

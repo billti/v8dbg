@@ -13,7 +13,7 @@ add_library(v8dbg SHARED "dbgext.cpp" "dbgext.h" "dbgext.rc" "utilities.cpp" "ut
 
 # Add the implementation specific sources
 target_sources(v8dbg PRIVATE "src/extension.cpp" "src/extension.h" "src/object.cpp" "src/object.h")
-target_sources(v8dbg PRIVATE "src/v8.cpp" "src/v8.h" "src/v8-layout.h" "src/curisolate.cpp" "src/curisolate.h")
+target_sources(v8dbg PRIVATE "src/v8.cpp" "src/v8.h" "src/v8-layout.h" "src/curisolate.cpp" "src/curisolate.h" "src/list-chunks.cpp" "src/list-chunks.h")
 
 # Add the test binary
 add_executable(v8dbg-test "test/main.cpp" "test/common.h")

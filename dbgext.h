@@ -15,6 +15,7 @@
 // Globals for use throughout the extension. (Populated on load).
 extern winrt::com_ptr<IDataModelManager> spDataModelManager;
 extern winrt::com_ptr<IDebugHost> spDebugHost;
+extern winrt::com_ptr<IDebugControl5> spDebugControl;
 
 // To be implemented by the custom extension code. (Called on load).
 bool CreateExtension();
