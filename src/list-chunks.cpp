@@ -21,10 +21,8 @@ HRESULT __stdcall ListChunksAlias::Call(IModelObject* pContextObject,
   auto spIndexableConcept = spIterator.as<IIndexableConcept>();
   auto spIterableConcept = spIterator.as<IIterableConcept>();
 
-  // TODO: Implement the indexable functionality
-  // hr = (*ppResult)->SetConcept(__uuidof(IIndexableConcept),
-  //                             spIndexableConcept.get(), nullptr);
-  // if (FAILED(hr)) return hr;
+  hr = (*ppResult)->SetConcept(__uuidof(IIndexableConcept), spIndexableConcept.get(), nullptr);
+  if (FAILED(hr)) return hr;
   hr = (*ppResult)->SetConcept(__uuidof(IIterableConcept), spIterableConcept.get(), nullptr);
   if (FAILED(hr)) return hr;
   return hr;
@@ -148,6 +146,7 @@ HRESULT MemoryChunkIterator::GetNext(IModelObject** object, ULONG64 dimensions,
   // Create the synthetic object representing the chunk here
   ChunkData& currChunk = chunks.at(position++);
   hr = spDataModelManager->CreateSyntheticObject(spCtx.get(), spValue.put());
+  if (FAILED(hr)) return hr;
   hr = spValue->SetKey(L"area_start", currChunk.area_start.get(), nullptr);
   if (FAILED(hr)) return hr;
   hr = spValue->SetKey(L"area_end", currChunk.area_end.get(), nullptr);

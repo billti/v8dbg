@@ -1,6 +1,7 @@
 #pragma once
 
 #include <crtdbg.h>
+#include <optional>
 #include <string>
 #include <vector>
 #include "../utilities.h"
@@ -53,9 +54,42 @@ struct MemoryChunks
   HRESULT __stdcall GetAt(IModelObject* contextObject, ULONG64 indexerCount,
                           IModelObject** indexers, IModelObject** object,
                           IKeyStore** metadata) noexcept override {
-    // TODO
-    _RPT0(_CRT_ERROR, "IndexableConcept::GetAt not implemented\n");
-    return E_NOTIMPL;
+    _RPT0(_CRT_WARN, "In IIndexableConcept::GetAt\n");
+    if (indexerCount != 1) return E_INVALIDARG;
+    if (metadata != nullptr) *metadata = nullptr;
+    HRESULT hr = S_OK;
+    winrt::com_ptr<IDebugHostContext> spCtx;
+    hr = contextObject->GetContext(spCtx.put());
+    if (FAILED(hr)) return hr;
+
+    // This should be instantiated once for each synthetic object returned,
+    // so should be able to cache/reuse an iterator
+    if (!optChunks.has_value()) {
+      _RPT0(_CRT_WARN, "Caching memory chunks for the indexer\n");
+      optChunks.emplace(spCtx);
+      _ASSERT(optChunks.has_value());
+      optChunks->PopulateChunkData();
+    }
+
+    VARIANT vtIndex;
+    hr = indexers[0]->GetIntrinsicValueAs(VT_UI8, &vtIndex);
+    if (FAILED(hr)) return hr;
+
+    if (vtIndex.ullVal >= optChunks->chunks.size()) return E_BOUNDS;
+
+    ChunkData currChunk = optChunks->chunks.at(vtIndex.ullVal);
+    winrt::com_ptr<IModelObject> spValue;
+    hr = spDataModelManager->CreateSyntheticObject(spCtx.get(), spValue.put());
+    if (FAILED(hr)) return hr;
+    hr = spValue->SetKey(L"area_start", currChunk.area_start.get(), nullptr);
+    if (FAILED(hr)) return hr;
+    hr = spValue->SetKey(L"area_end", currChunk.area_end.get(), nullptr);
+    if (FAILED(hr)) return hr;
+    hr = spValue->SetKey(L"space", currChunk.space.get(), nullptr);
+    if (FAILED(hr)) return hr;
+
+    *object = spValue.detach();
+    return S_OK;
   }
 
   HRESULT __stdcall SetAt(IModelObject* contextObject, ULONG64 indexerCount,
@@ -82,4 +116,6 @@ struct MemoryChunks
     *iterator = spMemoryIterator.as<IModelIterator>().detach();
     return S_OK;
   }
+
+  std::optional<MemoryChunkIterator> optChunks;
 };
