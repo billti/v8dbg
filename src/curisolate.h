@@ -8,6 +8,7 @@
 #include "v8.h"
 
 int GetIsolateKey(winrt::com_ptr<IDebugHostContext>& spCtx);
+HRESULT GetCurrentIsolate(winrt::com_ptr<IModelObject>& spResult);
 
 struct CurrIsolateAlias : winrt::implements<CurrIsolateAlias, IModelMethod> {
   HRESULT __stdcall Call(IModelObject* pContextObject, ULONG64 argCount,

@@ -29,24 +29,15 @@ int GetIsolateKey(winrt::com_ptr<IDebugHostContext>& spCtx) {
   return -1;
 }
 
-HRESULT __stdcall CurrIsolateAlias::Call(IModelObject* pContextObject,
-                                         ULONG64 argCount,
-                                         _In_reads_(argCount)
-                                             IModelObject** ppArguments,
-                                         IModelObject** ppResult,
-                                         IKeyStore** ppMetadata) noexcept {
+HRESULT GetCurrentIsolate(winrt::com_ptr<IModelObject>& spResult) {
   HRESULT hr = S_OK;
-  *ppResult = nullptr;
-
-  // TODO: Get @$curthread.Environment.EnvironmentBlock.TlsSlots (which should
-  // be a void*[64]) Indexed via the static member:
-  // v8!v8::internal::Isolate::isolate_key_ [Type: int]
+  spResult = nullptr;
 
   // Get the current context
   winrt::com_ptr<IDebugHostContext> spHostContext;
   winrt::com_ptr<IModelObject> spRootNamespace;
   hr = spDebugHost->GetCurrentContext(spHostContext.put());
-  if (FAILED(hr)) return E_FAIL;
+  if (FAILED(hr)) return hr;
 
   winrt::com_ptr<IModelObject> spCurrThread;
   if (!GetCurrentThread(spHostContext, spCurrThread.put())) {
@@ -62,9 +53,8 @@ HRESULT __stdcall CurrIsolateAlias::Call(IModelObject* pContextObject,
                                   nullptr);
   if (FAILED(hr)) return E_FAIL;
 
-  // Unlike prior object, which are "synthetic", EnvironmentBlock and TlsSlots
-  // are native types (TypeUDT) and thus GetRawValue rather than GetKeyValue
-  // should be used to get field (member) values.
+  // EnvironmentBlock and TlsSlots are native types (TypeUDT) and thus GetRawValue
+  // rather than GetKeyValue should be used to get field (member) values.
   ModelObjectKind kind;
   hr = spEnvironmentBlock->GetKind(&kind);
   if (kind != ModelObjectKind::ObjectTargetObject) return E_FAIL;
@@ -83,7 +73,7 @@ HRESULT __stdcall CurrIsolateAlias::Call(IModelObject* pContextObject,
   // Need to dereference the slot and then get the address held in it
   winrt::com_ptr<IModelObject> spDereferencedSlot;
   hr = spIsolatePtr->Dereference(spDereferencedSlot.put());
-  if (FAILED(hr)) return E_FAIL;
+  if (FAILED(hr)) return hr;
 
   VARIANT vtIsolatePtr;
   hr = spDereferencedSlot->GetIntrinsicValue(&vtIsolatePtr);
@@ -97,12 +87,26 @@ HRESULT __stdcall CurrIsolateAlias::Call(IModelObject* pContextObject,
   winrt::com_ptr<IDebugHostType> spIsolateType, spIsolatePtrType;
   hr = Extension::currentExtension->GetV8Module(spHostContext)
            ->FindTypeByName(L"v8::internal::Isolate", spIsolateType.put());
+  if (FAILED(hr)) return hr;
   hr = spIsolateType->CreatePointerTo(PointerStandard, spIsolatePtrType.put());
+  if (FAILED(hr)) return hr;
 
-  winrt::com_ptr<IModelObject> spResult;
   hr = spDataModelManager->CreateTypedObject(
       spHostContext.get(), isolate_addr, spIsolateType.get(), spResult.put());
+  if (FAILED(hr)) return hr;
 
+  return S_OK;
+}
+
+HRESULT __stdcall CurrIsolateAlias::Call(IModelObject* pContextObject,
+                                         ULONG64 argCount,
+                                         IModelObject** ppArguments,
+                                         IModelObject** ppResult,
+                                         IKeyStore** ppMetadata) noexcept {
+  HRESULT hr = S_OK;
+  *ppResult = nullptr;
+  winrt::com_ptr<IModelObject> spResult;
+  hr = GetCurrentIsolate(spResult);
   if (SUCCEEDED(hr)) *ppResult = spResult.detach();
   return hr;
 }
